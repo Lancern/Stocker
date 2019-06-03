@@ -75,12 +75,10 @@ namespace Stocker.HBase
         {
             if (item == null)
                 throw new ArgumentNullException(nameof(item));
-            if (item.ColumnFamilyName == null)
-                throw new ArgumentException($"对象的{nameof(item.ColumnFamilyName)}属性不能为 null。");
-            if (item.ColumnName == null)
-                throw new ArgumentException($"对象的{nameof(item.ColumnName)}不能为 null。");
+            if (item.Column == null)
+                throw new ArgumentException($"对象的{nameof(item.Column)}属性不能为null。");
 
-            var column = item.GetColumnIdentifier();
+            var column = item.Column.ToString();
             if (_cells.TryGetValue(column, out var cells))
             {
                 cells.Add(item);
@@ -100,7 +98,7 @@ namespace Stocker.HBase
         /// <inheritdoc />
         public bool Contains(HBaseCell item)
         {
-            var column = item.GetColumnIdentifier();
+            var column = item.Column.ToString();
             if (!_cells.TryGetValue(column, out var cells))
             {
                 return false;
@@ -130,7 +128,7 @@ namespace Stocker.HBase
         /// <inheritdoc />
         public bool Remove(HBaseCell item)
         {
-            var column = item.GetColumnIdentifier();
+            var column = item.Column.ToString();
             if (!_cells.TryGetValue(column, out var cells))
             {
                 return false;

@@ -6,14 +6,9 @@ namespace Stocker.HBase
     public sealed class HBaseCell
     {
         /// <summary>
-        /// 获取或设置单元格所处的列族的名称。
+        /// 获取或设置单元格的列。
         /// </summary>
-        public string ColumnFamilyName { get; set; }
-        
-        /// <summary>
-        /// 获取或设置单元格所处的列名称。
-        /// </summary>
-        public string ColumnName { get; set; }
+        public HBaseColumn Column { get; set; }
         
         /// <summary>
         /// 获取或设置单元格中的数据。
@@ -24,14 +19,5 @@ namespace Stocker.HBase
         /// 获取或设置单元格的时间戳。
         /// </summary>
         public int Timestamp { get; set; }
-
-        /// <summary>
-        /// 获取当前单元格的列标识符。
-        /// </summary>
-        /// <returns>当前单元格的列标识符</returns>
-        public string GetColumnIdentifier()
-        {
-            return $"{ColumnFamilyName}:{ColumnName}";
-        }
     }
 }
