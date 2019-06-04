@@ -21,6 +21,7 @@ namespace Stocker.HBase
         ///     <paramref name="rows"/>为null
         /// </exception>
         /// <exception cref="HBaseException">当访问 HBase REST API 发生错误时抛出</exception>
+        /// <exception cref="ObjectDisposedException"></exception>
         Task Add(string tableName, IEnumerable<HBaseRow> rows);
 
         /// <summary>
@@ -36,6 +37,7 @@ namespace Stocker.HBase
         ///     <paramref name="rowKey"/>为null
         /// </exception>
         /// <exception cref="HBaseException">当访问 HBase REST API 发生错误时抛出</exception>
+        /// <exception cref="ObjectDisposedException"></exception>
         Task<HBaseRow> Find(string tableName, string rowKey, HBaseFindOptions options = null);
 
         /// <summary>
@@ -48,6 +50,7 @@ namespace Stocker.HBase
         ///     <paramref name="tableName"/>为null
         /// </exception>
         /// <exception cref="HBaseException">当访问 HBase REST API 发生错误时抛出</exception>
+        /// <exception cref="ObjectDisposedException"></exception>
         Task<IHBaseScanner> OpenScanner(string tableName, HBaseScannerCreationOptions options = null);
     }
 }
