@@ -1,6 +1,8 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace Stocker.HBase.Implementations
@@ -50,8 +52,18 @@ namespace Stocker.HBase.Implementations
                 throw new ArgumentNullException(nameof(tableName));
             if (rows == null)
                 throw new ArgumentNullException(nameof(rows));
-            
-            throw new System.NotImplementedException();
+
+            var url = $"{_httpClient.BaseAddress}/{tableName}/row_key";
+
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            foreach (var row in rows)
+            {
+                // TODO: HBaseRow转化为json
+                var content = new StringContent(row.ToString());
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                var response = await _httpClient.PutAsync(url, content);
+            }
         }
 
         /// <inheritdoc />
@@ -63,7 +75,18 @@ namespace Stocker.HBase.Implementations
             if (rowKey == null)
                 throw new ArgumentNullException(nameof(rowKey));
 
-            throw new System.NotImplementedException();
+            var url = $"{_httpClient.BaseAddress}/{tableName}/{rowKey}";
+
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            var response = await _httpClient.GetAsync(url);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                // TODO: 从返回的json转化为HBaseRow
+                return new HBaseRow();
+            }
+            else return null;
         }
 
         /// <inheritdoc />
@@ -72,8 +95,25 @@ namespace Stocker.HBase.Implementations
             EnsureNotDisposed();
             if (tableName == null)
                 throw new ArgumentNullException(nameof(tableName));
-            
-            throw new System.NotImplementedException();
+
+            var url = $"{_httpClient.BaseAddress}/{tableName}/scanner";
+
+            var content = new StringContent(options.ToString());
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            var response = await _httpClient.PutAsync(url, content);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+                var id = (string)new JObject(result)["id"];// ???
+                return new DefaultHBaseScanner(id, new HttpClient
+                {
+                    BaseAddress = new Uri($"{_httpClient.BaseAddress}/{tableName}/scanner/{id}")
+                });
+            }
+            else return null;
         }
 
         /// <summary>

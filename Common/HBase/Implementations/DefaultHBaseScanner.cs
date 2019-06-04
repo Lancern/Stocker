@@ -1,3 +1,4 @@
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -68,8 +69,20 @@ namespace Stocker.HBase.Implementations
         public async Task<List<HBaseRow>> ReadNextBatch()
         {
             EnsureNotDisposed();
-            
-            throw new System.NotImplementedException();
+
+            var response = await _httpClient.GetAsync(string.Empty);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = response.Content.ReadAsStringAsync();
+                var rows = new List<HBaseRow>();
+                var json = new JObject(result);
+
+                // TODO: 将返回的内容转化为HBaseRow列表
+
+                return rows;
+            }
+            else return null;
         }
 
         /// <summary>

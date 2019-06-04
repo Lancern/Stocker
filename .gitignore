@@ -3,3 +3,5 @@
 ################################################################################
 
 /.vs
+/Common/obj/Release/netcoreapp2.1
+/Crawler/obj/Release/netcoreapp2.1
