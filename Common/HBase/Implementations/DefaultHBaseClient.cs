@@ -16,10 +16,14 @@ namespace Stocker.HBase.Implementations
         /// <summary>
         /// 初始化 <see cref="DefaultHBaseClient"/> 类的新实例。
         /// </summary>
-        /// <param name="httpClientFactory">用于创建 <see cref="HttpClient"/> 的工厂对象。</param>
-        public DefaultHBaseClient(IHttpClientFactory httpClientFactory)
+        /// <param name="httpClient">
+        /// 用于访问 HBase REST API 的 <see cref="HttpClient"/> 对象。该对象的 <see cref="HttpClient.BaseAddress"/> 属性应该
+        /// 包含 HBase REST API 服务的地址。
+        /// </param>
+        /// <exception cref="ArgumentNullException"><paramref name="httpClient"/>为null</exception>
+        public DefaultHBaseClient(HttpClient httpClient)
         {
-            _httpClient = httpClientFactory.CreateClient();
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             _disposed = false;
         }
 
