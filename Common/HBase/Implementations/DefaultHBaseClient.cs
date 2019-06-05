@@ -1,9 +1,12 @@
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Stocker.HBase.Serialization;
 
 namespace Stocker.HBase.Implementations
 {
@@ -12,26 +15,66 @@ namespace Stocker.HBase.Implementations
     /// </summary>
     internal sealed class DefaultHBaseClient : IHBaseClient
     {
+        private const int DefaultScannerBatchSize = 100;
+        
+        /// <summary>
+        /// 为发送到 HBase REST API 的数据行数据提供外围数据包装。
+        /// </summary>
+        private sealed class HBaseRowWrapper
+        {
+            /// <summary>
+            /// 获取或设置所有的数据行。
+            /// </summary>
+            [JsonProperty("Row")]
+            public List<HBaseRow> Rows { get; set; }
+        }
+        
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly HttpClient _httpClient;
         private bool _disposed;
         
         /// <summary>
         /// 初始化 <see cref="DefaultHBaseClient"/> 类的新实例。
         /// </summary>
-        /// <param name="httpClient">
-        /// 用于访问 HBase REST API 的 <see cref="HttpClient"/> 对象。该对象的 <see cref="HttpClient.BaseAddress"/> 属性应该
-        /// 包含 HBase REST API 服务的地址。
-        /// </param>
-        /// <exception cref="ArgumentNullException"><paramref name="httpClient"/>为null</exception>
-        public DefaultHBaseClient(HttpClient httpClient)
+        /// <param name="address">HBase 实例所在主机的地址。</param>
+        /// <param name="port">HBase 实例所在的端口号。</param>
+        /// <param name="httpClientFactory">用于创建访问 HBase REST API 的 <see cref="HttpClient"/> 的工厂对象。</param>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="address"/>为null
+        ///     或
+        ///     <paramref name="httpClientFactory"/>为null
+        /// </exception>
+        /// <exception cref="ArgumentOutOfRangeException">
+        ///     <paramref name="port"/>小于0 或 大于65535
+        /// </exception>
+        public DefaultHBaseClient(string address, int port, IHttpClientFactory httpClientFactory)
         {
-            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            if (address == null)
+                throw new ArgumentNullException(nameof(address));
+            if (port < 0 || port > 65535)
+                throw new ArgumentOutOfRangeException(nameof(port));
+            
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+            _httpClient = _httpClientFactory.CreateClient();
             _disposed = false;
+            
+            InitializeHttpClient(address, port);
         }
 
-        ~DefaultHBaseClient()
+        /// <summary>
+        /// 初始化 <see cref="HttpClient"/> 对象。
+        /// </summary>
+        /// <param name="address">HBase 实例所在主机的地址。</param>
+        /// <param name="port">HBase 实例所在的端口号。</param>
+        private void InitializeHttpClient(string address, int port)
         {
-            Dispose(false);
+            _httpClient.BaseAddress = new UriBuilder
+            {
+                Host = address,
+                Port = port
+            }.Uri;
+            
+            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
 
         /// <summary>
@@ -53,16 +96,16 @@ namespace Stocker.HBase.Implementations
             if (rows == null)
                 throw new ArgumentNullException(nameof(rows));
 
-            var url = $"{_httpClient.BaseAddress}/{tableName}/row_key";
+            var wrapper = new HBaseRowWrapper { Rows = rows.ToList() };
+            var json = HBaseSerializationHelper.SerializeObject(wrapper);
 
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            foreach (var row in rows)
+            var url = $"{tableName}/row_key";
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
+            var response = await _httpClient.PutAsync(url, content);
+
+            if (!response.IsSuccessStatusCode)
             {
-                // TODO: HBaseRow转化为json
-                var content = new StringContent(row.ToString());
-                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-                var response = await _httpClient.PutAsync(url, content);
+                throw new HBaseException("HBase REST API 返回了表示错误的 HTTP 状态码：" + response.StatusCode);
             }
         }
 
@@ -75,18 +118,38 @@ namespace Stocker.HBase.Implementations
             if (rowKey == null)
                 throw new ArgumentNullException(nameof(rowKey));
 
-            var url = $"{_httpClient.BaseAddress}/{tableName}/{rowKey}";
+            var urlBuilder = new StringBuilder($"{tableName}/{rowKey}");
+            if (options?.Column != null)
+            {
+                urlBuilder.AppendFormat("/{0}", options.Column);
+            }
 
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            if (options?.Timestamp != null)
+            {
+                urlBuilder.AppendFormat("/{0}", options.Timestamp);
+            }
+
+            if (options?.NumberOfVersions != null)
+            {
+                urlBuilder.AppendFormat("?v={0}", options.NumberOfVersions);
+            }
+
+            var url = urlBuilder.ToString();
             var response = await _httpClient.GetAsync(url);
 
-            if (response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                // TODO: 从返回的json转化为HBaseRow
-                return new HBaseRow();
+                throw new HBaseException("HBase REST API 返回了表示错误的 HTTP 状态码：" + response.StatusCode);
             }
-            else return null;
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var data = HBaseSerializationHelper.DeserializeObject<HBaseRowWrapper>(responseBody);
+            if (data.Rows == null || data.Rows.Count == 0)
+            {
+                return null;
+            }
+
+            return data.Rows[0];
         }
 
         /// <inheritdoc />
@@ -96,47 +159,72 @@ namespace Stocker.HBase.Implementations
             if (tableName == null)
                 throw new ArgumentNullException(nameof(tableName));
 
-            var url = $"{_httpClient.BaseAddress}/{tableName}/scanner";
+            // 构造请求负载
+            var scannerOptionsJson = new JObject();
+            if (options?.Columns != null)
+            {
+                scannerOptionsJson.Add("column", HBaseSerializationHelper.ToJToken(options.Columns));
+            }
 
-            var content = new StringContent(options.ToString());
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            if (options?.StartRowKey != null)
+            {
+                var startRowKeyBytes = Encoding.UTF8.GetBytes(options.StartRowKey);
+                scannerOptionsJson.Add("startRow", JToken.FromObject(Convert.ToBase64String(startRowKeyBytes)));
+            }
 
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            if (options?.EndRowKey != null)
+            {
+                var endRowKeyBytes = Encoding.UTF8.GetBytes(options.EndRowKey);
+                scannerOptionsJson.Add("endRow", JToken.FromObject(Convert.ToBase64String(endRowKeyBytes)));
+            }
 
+            if (options?.StartTime != null)
+            {
+                scannerOptionsJson.Add("startTime", JToken.FromObject(options.StartTime));
+            }
+
+            if (options?.EndTime != null)
+            {
+                scannerOptionsJson.Add("endTime", JToken.FromObject(options.EndTime));
+            }
+
+            scannerOptionsJson.Add("batch", JToken.FromObject(options?.Batch ?? DefaultScannerBatchSize));
+
+            var contentJson = HBaseSerializationHelper.SerializeJToken(scannerOptionsJson);
+
+            // 发送 HTTP 请求
+            var url = $"{tableName}/scanner";
+            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(contentJson));
             var response = await _httpClient.PutAsync(url, content);
-            if (response.IsSuccessStatusCode)
+
+            if (!response.IsSuccessStatusCode)
             {
-                var result = await response.Content.ReadAsStringAsync();
-                var id = (string)new JObject(result)["id"];// ???
-                return new DefaultHBaseScanner(id, new HttpClient
-                {
-                    BaseAddress = new Uri($"{_httpClient.BaseAddress}/{tableName}/scanner/{id}")
-                });
+                throw new HBaseException("HBase REST API 返回了表示错误的 HTTP 状态码：" + response.StatusCode);
             }
-            else return null;
+
+            // 从响应的 Location 头部拿到 Scanner 的接入点
+            if (!response.Headers.TryGetValues("Location", out var scannerEndpoints))
+            {
+                throw new HBaseException("HBase REST API 没有返回任何有效的 Scanner 终结点。");
+            }
+
+            var scannerEpt = scannerEndpoints.FirstOrDefault();
+            if (scannerEpt == null)
+            {
+                throw new HBaseException("HBase REST API 没有返回任何有效的 Scanner 终结点。");
+            }
+
+            return new DefaultHBaseScanner(scannerEpt, _httpClientFactory);
         }
 
-        /// <summary>
-        /// 释放当前对象所占有的所有外部资源。
-        /// </summary>
-        /// <param name="disposing">用户是否正在调用 <see cref="Dispose()"/> 方法。</param>
-        private void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _httpClient.Dispose();
-                }
-
-                _disposed = true;
-            }
-        }
-        
         /// <inheritdoc />
         public void Dispose()
         {
-            Dispose(true);
+            if (!_disposed)
+            {
+                _httpClient?.Dispose();
+                _disposed = true;
+            }
         }
     }
 }

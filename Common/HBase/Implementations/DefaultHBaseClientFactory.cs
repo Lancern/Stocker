@@ -26,13 +26,8 @@ namespace Stocker.HBase.Implementations
                 throw new ArgumentNullException(nameof(address));
             if (port < 0 || port > 65535)
                 throw new ArgumentOutOfRangeException(nameof(port));
-
-            var baseAddressBuilder = new UriBuilder { Host = address, Port = port };
-
-            var httpClient = _httpClientFactory.CreateClient();
-            httpClient.BaseAddress = baseAddressBuilder.Uri;
             
-            return new DefaultHBaseClient(httpClient);
+            return new DefaultHBaseClient(address, port, _httpClientFactory);
         }
     }
 }
