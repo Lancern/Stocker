@@ -10,7 +10,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     /// <summary>
     /// 提供实时数据爬虫的逻辑。
     /// </summary>
-    [CrawlerTask(3)]
+    [CrawlerTask(1)]
     public sealed class RealtimeInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
         private const string HBaseTableName = "stocks";
@@ -68,6 +68,13 @@ namespace Stocker.Crawler.Tasks.Concrete
             if (ts.DayOfWeek == DayOfWeek.Saturday || ts.DayOfWeek == DayOfWeek.Sunday)
             {
                 // 周六周日不开市
+                return;
+            }
+
+            if (ts.TimeOfDay < new TimeSpan(9, 30, 0) || 
+                ts.TimeOfDay > new TimeSpan(15, 0, 0))
+            {
+                // 股市未开市
                 return;
             }
             

@@ -39,19 +39,22 @@ namespace Stocker.Crawler.Tasks.Implementation
                 }
             }
 
-            public CrawlerTaskScheduleDescriptor(int nextRunTimestamp, CrawlerTaskMetadata metadata)
+            public CrawlerTaskScheduleDescriptor(int nextRunTimestamp, CrawlerTaskMetadata metadata, 
+                                                 IServiceProvider serviceProvider)
             {
                 NextRunTimestamp = nextRunTimestamp;
                 Metadata = metadata;
+                TaskObject = new Lazy<ICrawlerTask>(() => Metadata.ActivateTaskObject(serviceProvider));
             }
             
             public int NextRunTimestamp { get; set; }
             
             public CrawlerTaskMetadata Metadata { get; }
+            
+            public Lazy<ICrawlerTask> TaskObject { get; }
         }
 
         private readonly Heap<CrawlerTaskScheduleDescriptor> _tasks;
-        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<DefaultCrawlerTaskManager> _logger;
 
         public DefaultCrawlerTaskManager(IEnumerable<CrawlerTaskMetadata> metadatas,
@@ -62,12 +65,11 @@ namespace Stocker.Crawler.Tasks.Implementation
                 throw new ArgumentNullException(nameof(metadatas));
 
             var descriptors = metadatas.Select(
-                meta => new CrawlerTaskScheduleDescriptor(meta.Annotation.Interval, meta));
+                meta => new CrawlerTaskScheduleDescriptor(meta.Annotation.Interval, meta, serviceProvider));
 
             _tasks = new Heap<CrawlerTaskScheduleDescriptor>(
                 descriptors, new CrawlerTaskScheduleDescriptor.HeapComparer());
 
-            _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         
@@ -103,7 +105,7 @@ namespace Stocker.Crawler.Tasks.Implementation
                     ICrawlerTask taskObject = null;
                     try
                     {
-                        taskObject = activeTask.Metadata.ActivateTaskObject(_serviceProvider);
+                        taskObject = activeTask.TaskObject.Value;
                     }
                     catch (Exception ex)
                     {

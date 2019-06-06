@@ -121,9 +121,10 @@ namespace Stocker.Crawler.Tasks.Concrete
         protected override async Task RunExclusive()
         {
             var ts = DateTime.Now;
-            if (ts.TimeOfDay.Hours < 15)
+            if (ts.TimeOfDay < new TimeSpan(15, 0, 0) ||
+                ts.TimeOfDay > new TimeSpan(16, 0, 0))
             {
-                // 15:00 前不执行
+                // 15:00 - 16:00 以外时间不执行
                 return;
             }
 
