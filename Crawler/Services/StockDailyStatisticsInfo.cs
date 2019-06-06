@@ -48,6 +48,6 @@ namespace Stocker.Crawler.Services
         /// 获取或设置成交量。
         /// </summary>
         [JsonProperty("volume")]
-        public int Volume { get; set; }
+        public long Volume { get; set; }
     }
 }

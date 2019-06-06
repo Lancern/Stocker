@@ -23,7 +23,7 @@ namespace Stocker.Crawler.Services
         /// 获取或设置总市值。
         /// </summary>
         [JsonProperty("mktcap")]
-        public long MarketCapacity { get; set; }
+        public double MarketCapacity { get; set; }
         
         /// <summary>
         /// 获取或设置当前价格。
@@ -77,6 +77,6 @@ namespace Stocker.Crawler.Services
         /// 获取或设置成交额。
         /// </summary>
         [JsonProperty("amount")]
-        public long Amount { get; set; }
+        public double Amount { get; set; }
     }
 }
