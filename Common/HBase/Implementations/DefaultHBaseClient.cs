@@ -74,7 +74,8 @@ namespace Stocker.HBase.Implementations
                 Port = port
             }.Uri;
             
-            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/json");
+            _httpClient.DefaultRequestHeaders.Add("Content-Type", "text/json");
         }
 
         /// <summary>
