@@ -18,6 +18,6 @@ namespace Stocker.HBase
         /// <summary>
         /// 获取或设置单元格的时间戳。
         /// </summary>
-        public int Timestamp { get; set; }
+        public long Timestamp { get; set; }
     }
 }

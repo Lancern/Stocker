@@ -32,7 +32,8 @@ namespace Stocker.HBase
                     return -1;
                 }
 
-                return x.Timestamp - y.Timestamp;
+                var diff = x.Timestamp - y.Timestamp;
+                return (int) (diff / Math.Abs(diff));
             }
         }
         

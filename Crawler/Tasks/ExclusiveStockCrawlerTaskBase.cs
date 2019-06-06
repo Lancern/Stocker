@@ -7,7 +7,7 @@ namespace Stocker.Crawler.Tasks
     /// <summary>
     /// 为股票数据 Crawler Task 提供抽象基类。
     /// </summary>
-    public abstract class ExclusiveStockCrawlerTaskBase : ExclusiveCrawlerTask
+    public abstract class ExclusiveStockCrawlerTaskBase : ExclusiveCrawlerTaskBase
     {
         /// <summary>
         /// 初始化 <see cref="ExclusiveStockCrawlerTaskBase"/> 类的新实例。
@@ -33,14 +33,5 @@ namespace Stocker.Crawler.Tasks
         /// 获取 HBase Client 对象的工厂对象。
         /// </summary>
         protected IHBaseClientFactory HBaseClientFactory { get; }
-
-        /// <summary>
-        /// 使用 <see cref="HBaseClientFactory"/> 创建 <see cref="IHBaseClient"/> 实例对象。
-        /// </summary>
-        /// <returns></returns>
-        protected IHBaseClient CreateHBaseClient()
-        {
-            return HBaseClientFactory.Create();
-        }
     }
 }

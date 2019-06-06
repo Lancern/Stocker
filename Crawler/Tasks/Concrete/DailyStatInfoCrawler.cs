@@ -1,6 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Stocker.Crawler.Services;
+using Stocker.Crawler.Utils;
 using Stocker.HBase;
 
 namespace Stocker.Crawler.Tasks.Concrete
@@ -11,9 +15,11 @@ namespace Stocker.Crawler.Tasks.Concrete
     [CrawlerTask(60)]
     public sealed class DailyStatInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
+        private const string HBaseTableName = "stocks";
+        
         /// <summary>
         /// 初始化 <see cref="DailyStatInfoCrawler"/> 类的新实例。
-        /// </summary>\
+        /// </summary>
         /// <exception cref="ArgumentNullException">
         ///     <paramref name="stockInfoProvider"/>为null
         ///     或
@@ -24,9 +30,133 @@ namespace Stocker.Crawler.Tasks.Concrete
         {
         }
 
+        /// <summary>
+        /// 获取给定股票日统计数据所对应的 HBase 数据行。
+        /// </summary>
+        /// <param name="stockInfo">股票日统计数据</param>
+        /// <param name="timestamp">获取数据时的时间戳</param>
+        /// <returns></returns>
+        private static HBaseRow GetRow(StockDailyStatisticsInfo stockInfo, DateTime timestamp)
+        {
+            var row = new HBaseRow { Key = stockInfo.Code };
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("open", "open"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(stockInfo.OpenPrice.ToString("G"))
+            });
+            
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("close", "close"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(stockInfo.ClosePrice.ToString("G"))
+            });
+            
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("highest", "highest"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(stockInfo.HighestPrice.ToString("G"))
+            });
+            
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("lowest", "lowest"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(stockInfo.LowestPrice.ToString("G"))
+            });
+            
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("total", "total"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(stockInfo.Volume.ToString("G"))
+            });
+            
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("date", "date"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(timestamp.ToString("yyyy-M-d hh:mm:ss"))
+            });
+
+            return row;
+        }
+
+        /// <summary>
+        /// 从给定的 <see cref="ProducerConsumerQueue{String}"/> 中获取要爬取的股票代码并爬取日统计信息。
+        /// </summary>
+        /// <param name="stockCodeQueue"></param>
+        /// <param name="timestamp">爬取的数据所使用的时间戳</param>
+        /// <returns></returns>
+        private async Task ConsumeAndCrawl(ProducerConsumerQueue<string> stockCodeQueue, DateTime timestamp)
+        {
+            var date = DateTime.Now.Date;
+            var stockInfosList = new List<StockDailyStatisticsInfo>();
+            while (true)
+            {
+                string stockCode;
+                try
+                {
+                    stockCode = stockCodeQueue.Dequeue();
+                }
+                catch (ObjectDisposedException)
+                {
+                    break;
+                }
+
+                var stockStat = await StockInfoProvider.GetDailyStatisticsInfo(stockCode, date, date);
+                stockInfosList.Add(stockStat);
+            }
+
+            var rows = stockInfosList.Select(item => GetRow(item, timestamp));
+            using (var hbaseClient = HBaseClientFactory.Create())
+            {
+                await hbaseClient.Add(HBaseTableName, rows);
+            }
+        }
+
+        /// <inheritdoc />
         protected override async Task RunExclusive()
         {
-            throw new NotImplementedException();
+            var ts = DateTime.Now;
+            if (ts.TimeOfDay.Hours < 15)
+            {
+                // 15:00 前不执行
+                return;
+            }
+
+            if (ts.DayOfWeek == DayOfWeek.Saturday || ts.DayOfWeek == DayOfWeek.Sunday)
+            {
+                // 周六周日不执行
+                return;
+            }
+            
+            // 获取所有的股票代码
+            var stocksCodeList = new List<string>();
+            using (var hbaseClient = HBaseClientFactory.Create())
+            {
+                var scannerCreationOptions = new HBaseScannerCreationOptions { Batch = 1000 };
+                using (var scanner = await hbaseClient.OpenScanner(HBaseTableName, scannerCreationOptions))
+                {
+                    while (await scanner.ReadNextBatch())
+                    {
+                        stocksCodeList.AddRange(scanner.CurrentBatch.Select(row => row.Key));
+                    }
+                }
+            }
+            
+            // API 调用限制：500毫秒间隔，最大并发请求数 = 3
+            var workQueue = new ProducerConsumerQueue<string>(3);
+            var consumer = Task.Run(() => ConsumeAndCrawl(workQueue, ts));
+            foreach (var stockCode in stocksCodeList)
+            {
+                workQueue.Enqueue(stockCode);
+                await Task.Delay(500);
+            }
+
+            await consumer;
         }
     }
 }

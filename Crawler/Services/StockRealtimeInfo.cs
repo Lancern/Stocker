@@ -1,4 +1,3 @@
-using System;
 using Newtonsoft.Json;
 
 namespace Stocker.Crawler.Services
@@ -11,7 +10,7 @@ namespace Stocker.Crawler.Services
         /// <summary>
         /// 获取或设置股票代码。
         /// </summary>
-        [JsonProperty("symbol")]
+        [JsonProperty("code")]
         public string Code { get; set; }
         
         /// <summary>
@@ -21,75 +20,63 @@ namespace Stocker.Crawler.Services
         public string Name { get; set; }
         
         /// <summary>
-        /// 获取或设置股票的最新价格。
+        /// 获取或设置总市值。
+        /// </summary>
+        [JsonProperty("mktcap")]
+        public long MarketCapacity { get; set; }
+        
+        /// <summary>
+        /// 获取或设置当前价格。
         /// </summary>
         [JsonProperty("trade")]
-        public double LatestPrice { get; set; }
+        public double CurrentPrice { get; set; }
         
         /// <summary>
-        /// 获取或设置股票价格的绝对增长量。
-        /// </summary>
-        [JsonProperty("pricechange")]
-        public double PriceAbsoluteChange { get; set; }
-        
-        /// <summary>
-        /// 获取或设置股票价格的相对增长量。
-        /// </summary>
-        [JsonProperty("changepercent")]
-        public double PriceRelativeChange { get; set; }
-        
-        /// <summary>
-        /// 获取或设置买入价格。
-        /// </summary>
-        [JsonProperty("buy")]
-        public double BuyPrice { get; set; }
-        
-        /// <summary>
-        /// 获取或设置卖出价格。
-        /// </summary>
-        [JsonProperty("sell")]
-        public double SellPrice { get; set; }
-        
-        /// <summary>
-        /// 获取或设置上一交易日收盘价格。
-        /// </summary>
-        [JsonProperty("settlement")]
-        public double SettlementPrice { get; set; }
-        
-        /// <summary>
-        /// 获取或设置当前交易日开盘价格。
+        /// 获取或设置开盘价。
         /// </summary>
         [JsonProperty("open")]
         public double OpenPrice { get; set; }
         
         /// <summary>
-        /// 获取或设置股票的最高价格。
+        /// 获取或设置上一交易日收盘价。
+        /// </summary>
+        [JsonProperty("settlement")]
+        public double SettlementPrice { get; set; }
+        
+        /// <summary>
+        /// 获取或设置最高价。
         /// </summary>
         [JsonProperty("high")]
         public double HighestPrice { get; set; }
         
         /// <summary>
-        /// 获取或设置股票的最低价格。
+        /// 获取或设置最低价。
         /// </summary>
         [JsonProperty("low")]
         public double LowestPrice { get; set; }
         
         /// <summary>
-        /// 获取或设置股票成交量。
+        /// 获取或设置股价的相对涨跌幅度。
+        /// </summary>
+        [JsonProperty("")]
+        public double PriceRelativeChange { get; set; }
+        
+        /// <summary>
+        /// 获取或设置换手率。
+        /// </summary>
+        [JsonProperty("turnoverratio")]
+        public double TurnoverRatio { get; set; }
+        
+        /// <summary>
+        /// 获取或设置成交量。
         /// </summary>
         [JsonProperty("volume")]
-        public long TradeVolume { get; set; }
+        public long Volume { get; set; }
         
         /// <summary>
-        /// 获取或设置股票成交额。
+        /// 获取或设置成交额。
         /// </summary>
         [JsonProperty("amount")]
-        public long TradeAmount { get; set; }
-        
-        /// <summary>
-        /// 获取或设置数据更新时间戳。
-        /// </summary>
-        [JsonProperty("ticktime")]
-        public DateTime Timestamp { get; set; }
+        public long Amount { get; set; }
     }
 }

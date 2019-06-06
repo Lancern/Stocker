@@ -6,14 +6,14 @@ namespace Stocker.Crawler.Tasks
     /// <summary>
     /// 为互斥运行的 Crawler Task 提供抽象基类。
     /// </summary>
-    public abstract class ExclusiveCrawlerTask : ICrawlerTask
+    public abstract class ExclusiveCrawlerTaskBase : ICrawlerTask
     {
         private int _exclusiveGuard;
 
         /// <summary>
-        /// 初始化 <see cref="ExclusiveCrawlerTask"/> 类的新实例。
+        /// 初始化 <see cref="ExclusiveCrawlerTaskBase"/> 类的新实例。
         /// </summary>
-        protected ExclusiveCrawlerTask()
+        protected ExclusiveCrawlerTaskBase()
         {
             ExclusiveRegionGuard.InitializeGuard(out _exclusiveGuard);
         }
