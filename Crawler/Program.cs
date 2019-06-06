@@ -47,13 +47,14 @@ namespace Stocker.Crawler
             services.AddDefaultCrawlerTaskManagerFactory();
             
             // 添加数据爬虫
-            var apiKey = config.GetSection("Shenjian").GetValue<string>("AppID");
-            if (string.IsNullOrEmpty(apiKey))
+            var stockListAppId = config.GetSection("Shenjian").GetValue<string>("StockListAppId");
+            var stockDailyStatAppId = config.GetSection("Shenjian").GetValue<string>("StockDailyStatAppId");
+            if (string.IsNullOrEmpty(stockListAppId) || string.IsNullOrEmpty(stockDailyStatAppId))
             {
                 logger.Error("没有配置访问神箭数据所需的 App ID。");
                 return false;
             }
-            services.AddDefaultCrawler(apiKey);
+            services.AddDefaultCrawler(stockListAppId, stockDailyStatAppId);
 
             return true;
         }

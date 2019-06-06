@@ -4,9 +4,9 @@ using Newtonsoft.Json;
 namespace Stocker.Crawler.Services
 {
     /// <summary>
-    /// 封装股票信息。
+    /// 封装股票实时信息。
     /// </summary>
-    public sealed class StockInfo
+    public sealed class StockRealtimeInfo
     {
         /// <summary>
         /// 获取或设置股票代码。
