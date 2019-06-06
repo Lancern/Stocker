@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Stocker.HBase.Serialization;
+using Stocker.Util;
 
 namespace Stocker.HBase.Implementations
 {
@@ -75,7 +76,6 @@ namespace Stocker.HBase.Implementations
             }.Uri;
             
             _httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/json");
-            _httpClient.DefaultRequestHeaders.Add("Content-Type", "text/json");
         }
 
         /// <summary>
@@ -101,7 +101,7 @@ namespace Stocker.HBase.Implementations
             var json = HBaseSerializationHelper.SerializeObject(wrapper);
 
             var url = $"{tableName}/row_key";
-            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
+            var content = HttpRequestContentFactory.CreateJsonContent(json);
             var response = await _httpClient.PutAsync(url, content);
 
             if (!response.IsSuccessStatusCode)
@@ -195,7 +195,7 @@ namespace Stocker.HBase.Implementations
 
             // 发送 HTTP 请求
             var url = $"{tableName}/scanner";
-            var content = new ByteArrayContent(Encoding.UTF8.GetBytes(contentJson));
+            var content = HttpRequestContentFactory.CreateJsonContent(contentJson);
             var response = await _httpClient.PutAsync(url, content);
 
             if (!response.IsSuccessStatusCode)
