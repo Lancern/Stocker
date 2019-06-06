@@ -7,6 +7,7 @@ using NLog;
 using NLog.Extensions.Logging;
 using Stocker.Crawler.Services.DependencyInjection;
 using Stocker.Crawler.Services;
+using Stocker.Crawler.Tasks.DependencyInjection;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Stocker.Crawler
@@ -41,6 +42,9 @@ namespace Stocker.Crawler
             
             // 添加应用程序业务入口
             services.AddApplicationRunner();
+            
+            // 添加 Crawler Task Factory
+            services.AddDefaultCrawlerTaskManagerFactory();
             
             // 添加数据爬虫
             var apiKey = config.GetSection("Shenjian").GetValue<string>("AppID");
@@ -80,7 +84,7 @@ namespace Stocker.Crawler
 
                 using (var serviceProvider = services.BuildServiceProvider())
                 {
-                    serviceProvider.GetService<IApplicationRunner>().Run().Wait();
+                    serviceProvider.GetService<IApplicationRunner>().Run();
                 }
             }
             catch (Exception ex)

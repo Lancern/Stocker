@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace Stocker.Crawler.Services.Implementation
@@ -16,7 +15,7 @@ namespace Stocker.Crawler.Services.Implementation
         }
         
         /// <inheritdoc />
-        public async Task Run()
+        public void Run()
         {
             throw new System.NotImplementedException();
         }

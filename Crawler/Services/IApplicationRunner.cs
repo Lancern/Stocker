@@ -1,7 +1,5 @@
 using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Stocker.Crawler.Services;
 using Stocker.Crawler.Services.Implementation;
 
 namespace Stocker.Crawler.Services
@@ -12,9 +10,9 @@ namespace Stocker.Crawler.Services
     public interface IApplicationRunner
     {
         /// <summary>
-        /// 以异步方式启动应用程序的业务逻辑。
+        /// 启动应用程序的业务逻辑。
         /// </summary>
-        Task Run();
+        void Run();
     }
 }
 
