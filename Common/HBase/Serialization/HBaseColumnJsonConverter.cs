@@ -1,6 +1,7 @@
 using System;
 using System.Text;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Stocker.HBase.Serialization
 {
@@ -26,7 +27,7 @@ namespace Stocker.HBase.Serialization
         public override HBaseColumn ReadJson(JsonReader reader, Type objectType, HBaseColumn existingValue, 
                                              bool hasExistingValue, JsonSerializer serializer)
         {
-            var base64 = reader.ReadAsString();
+            var base64 = JToken.Load(reader).Value<string>();
             var column = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
             var splitterIndex = column.IndexOf(':');
 

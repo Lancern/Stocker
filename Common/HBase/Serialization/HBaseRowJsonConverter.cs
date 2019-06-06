@@ -35,7 +35,7 @@ namespace Stocker.HBase.Serialization
         public override HBaseRow ReadJson(JsonReader reader, Type objectType, HBaseRow existingValue, bool hasExistingValue,
                                           JsonSerializer serializer)
         {
-            var valueJsonObject = JToken.ReadFrom(reader);
+            var valueJsonObject = JToken.Load(reader);
 
             if (!hasExistingValue)
             {
@@ -48,7 +48,7 @@ namespace Stocker.HBase.Serialization
                 existingValue.Key = Encoding.UTF8.GetString(Convert.FromBase64String(keyBase64));
             }
 
-            var cells = valueJsonObject["Cells"]?.ToObject<List<HBaseCell>>(serializer);
+            var cells = valueJsonObject["Cell"]?.ToObject<List<HBaseCell>>(serializer);
             if (cells != null)
             {
                 foreach (var c in cells)

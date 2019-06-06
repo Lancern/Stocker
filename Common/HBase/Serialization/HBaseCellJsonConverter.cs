@@ -36,7 +36,7 @@ namespace Stocker.HBase.Serialization
         public override HBaseCell ReadJson(JsonReader reader, Type objectType, HBaseCell existingValue, 
                                            bool hasExistingValue, JsonSerializer serializer)
         {
-            var valueJsonObject = JToken.ReadFrom(reader);
+            var valueJsonObject = JToken.Load(reader);
 
             if (!hasExistingValue)
             {
