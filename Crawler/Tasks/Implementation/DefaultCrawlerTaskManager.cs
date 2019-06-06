@@ -74,6 +74,7 @@ namespace Stocker.Crawler.Tasks.Implementation
         /// <inheritdoc />
         public void Run()
         {
+            _logger.LogInformation("后台任务已启动主循环");
             if (_tasks.Count == 0)
             {
                 _logger.LogWarning("没有任何的 Crawler 任务。");

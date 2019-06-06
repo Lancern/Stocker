@@ -31,6 +31,7 @@ namespace Stocker.Crawler.Tasks.Implementation
             var crawlerTaskMetadatas = new List<CrawlerTaskMetadata>();
             
             // 遍历所有已经加载的 CLR 类型
+            _logger.LogInformation("探查后台任务类型...");
             foreach (var loadedAssembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 foreach (var t in loadedAssembly.GetTypes())
@@ -47,6 +48,7 @@ namespace Stocker.Crawler.Tasks.Implementation
                     }
                     
                     // t 带有 CrawlerTaskAttribute 注解且实现了 ICrawlerTask
+                    _logger.LogInformation("找到后台任务类型：{0}，启动间隔为 {1} 分钟", t, annotation.Interval);
                     var metadata = new CrawlerTaskMetadata(t, annotation);
                     crawlerTaskMetadatas.Add(metadata);
                 }

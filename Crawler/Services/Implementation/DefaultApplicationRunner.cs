@@ -24,6 +24,7 @@ namespace Stocker.Crawler.Services.Implementation
         /// <inheritdoc />
         public void Run()
         {
+            _logger.LogInformation("应用程序已启动。启动定时任务...");
             _crawlerTaskManagerFactory.Create().Run();
         }
     }

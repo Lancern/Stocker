@@ -80,6 +80,7 @@ namespace Stocker.Crawler
                              .Build();
 
                 // 初始化依赖注入容器
+                logger.Info("初始化服务容器...");
                 var services = new ServiceCollection();
                 if (!InitializeServiceCollection(services, config, logger))
                 {
@@ -87,6 +88,7 @@ namespace Stocker.Crawler
                     return;
                 }
 
+                logger.Info("启动应用程序...");
                 using (var serviceProvider = services.BuildServiceProvider())
                 {
                     serviceProvider.GetService<IApplicationRunner>().Run();
