@@ -10,7 +10,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     /// <summary>
     /// 提供实时数据爬虫的逻辑。
     /// </summary>
-    [CrawlerTask(1)]
+    [CrawlerTask(3)]
     public sealed class RealtimeInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
         private const string HBaseTableName = "stocks";
