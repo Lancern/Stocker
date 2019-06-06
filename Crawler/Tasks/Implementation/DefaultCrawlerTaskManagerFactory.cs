@@ -41,12 +41,12 @@ namespace Stocker.Crawler.Tasks.Implementation
                         continue;
                     }
 
-                    if (!t.IsSubclassOf(typeof(CrawlerTaskBase)))
+                    if (t.GetInterface(nameof(ICrawlerTask)) == null)
                     {
                         continue;
                     }
                     
-                    // t 带有 CrawlerTaskAttribute 注解且是 CrawlerTaskBase 的子类
+                    // t 带有 CrawlerTaskAttribute 注解且实现了 ICrawlerTask
                     var metadata = new CrawlerTaskMetadata(t, annotation);
                     crawlerTaskMetadatas.Add(metadata);
                 }

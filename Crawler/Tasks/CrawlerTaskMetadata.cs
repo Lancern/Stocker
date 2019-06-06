@@ -40,7 +40,7 @@ namespace Stocker.Crawler.Tasks
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"><paramref name="serviceProvider"/>为null</exception>
         /// <exception cref="InvalidOperationException">找不到能够满足所有参数依赖关系的构造器</exception>
-        public CrawlerTaskBase ActivateTaskObject(IServiceProvider serviceProvider)
+        public ICrawlerTask ActivateTaskObject(IServiceProvider serviceProvider)
         {
             if (serviceProvider == null)
                 throw new ArgumentNullException(nameof(serviceProvider));
@@ -76,7 +76,7 @@ namespace Stocker.Crawler.Tasks
                     continue;
                 }
 
-                return (CrawlerTaskBase) ctor.Invoke(parameters);
+                return (ICrawlerTask) ctor.Invoke(parameters);
             }
             
             throw new InvalidOperationException($"没有找到能够满足类型{Type}依赖关系的构造器。");

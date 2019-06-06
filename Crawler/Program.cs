@@ -8,6 +8,7 @@ using NLog.Extensions.Logging;
 using Stocker.Crawler.Services.DependencyInjection;
 using Stocker.Crawler.Services;
 using Stocker.Crawler.Tasks.DependencyInjection;
+using Stocker.HBase.DependencyInjection;
 using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Stocker.Crawler
@@ -36,6 +37,9 @@ namespace Stocker.Crawler
                 loggingBuilder.SetMinimumLevel(LogLevel.Trace);
                 loggingBuilder.AddNLog();
             });
+            
+            // 添加 HBase Client Factory
+            services.AddHBaseClientFactory();
             
             // 添加 IHttpClientFactory 依赖
             services.AddHttpClient();

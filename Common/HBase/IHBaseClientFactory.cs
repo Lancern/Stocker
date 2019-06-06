@@ -1,4 +1,5 @@
 using System;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Stocker.HBase.Implementations;
 
@@ -9,6 +10,14 @@ namespace Stocker.HBase
     /// </summary>
     public interface IHBaseClientFactory
     {
+        /// <summary>
+        /// 根据 <see cref="IConfiguration"/> 中的配置创建到 HBase 实例的 <see cref="IHBaseClient"/> 对象。
+        /// </summary>
+        /// <exception cref="InvalidOperationException">
+        /// 未能在 <see cref="IConfiguration"/> 中找到对应的配置项。
+        /// </exception>
+        IHBaseClient Create();
+        
         /// <summary>
         /// 创建访问指定 URL 处的 HBase 实例的 <see cref="IHBaseClient"/> 对象。
         /// </summary>

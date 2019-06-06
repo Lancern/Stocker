@@ -99,7 +99,7 @@ namespace Stocker.Crawler.Tasks.Implementation
                 {
                     var activeTask = _tasks.RemoveMax();
 
-                    CrawlerTaskBase taskObject = null;
+                    ICrawlerTask taskObject = null;
                     try
                     {
                         taskObject = activeTask.Metadata.ActivateTaskObject(_serviceProvider);
@@ -115,7 +115,17 @@ namespace Stocker.Crawler.Tasks.Implementation
                         var taskId = ++crawlerTaskId;
                         _logger.LogInformation("启动 Crawler 任务 {0}，ID = {1}", activeTask.Metadata.Type, taskId);
                         Task.Run(taskObject.Run)
-                            .ContinueWith(t => _logger.LogInformation("Crawler 任务 {0} 已退出", taskId));
+                            .ContinueWith(t =>
+                            {
+                                if (t.IsFaulted)
+                                {
+                                    _logger.LogError(t.Exception, "Crawler 任务 {0} 抛出了未经处理的异常。");
+                                }
+                                else
+                                {
+                                    _logger.LogInformation("Crawler 任务 {0} 已退出", taskId);
+                                }
+                            });
                     }
                     
                     // activeTask.Metadata.Annotation.Interval should be guaranteed to be greater than 0.
