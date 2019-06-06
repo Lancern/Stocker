@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Stocker.Crawler.Tasks;
 
 namespace Stocker.Crawler.Services.Implementation
 {
@@ -7,17 +8,23 @@ namespace Stocker.Crawler.Services.Implementation
     /// </summary>
     internal sealed class DefaultApplicationRunner : IApplicationRunner
     {
+        private readonly ICrawlerTaskManagerFactory _crawlerTaskManagerFactory;
         private readonly ILogger<DefaultApplicationRunner> _logger;
         
-        public DefaultApplicationRunner(ILogger<DefaultApplicationRunner> logger)
+        /// <summary>
+        /// 初始化 <see cref="DefaultApplicationRunner"/> 类的新实例。
+        /// </summary>
+        public DefaultApplicationRunner(ICrawlerTaskManagerFactory crawlerTaskManagerFactory, 
+                                        ILogger<DefaultApplicationRunner> logger)
         {
+            _crawlerTaskManagerFactory = crawlerTaskManagerFactory;
             _logger = logger;
         }
         
         /// <inheritdoc />
         public void Run()
         {
-            throw new System.NotImplementedException();
+            _crawlerTaskManagerFactory.Create().Run();
         }
     }
 }
