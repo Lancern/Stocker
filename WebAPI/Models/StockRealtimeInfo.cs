@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Newtonsoft.Json;
+
 namespace Stocker.WebAPI.Models
 {
     /// <summary>
@@ -5,6 +8,22 @@ namespace Stocker.WebAPI.Models
     /// </summary>
     public sealed class StockRealtimeInfo
     {
+        /// <summary>
+        /// 获取或设置股票代码。
+        /// </summary>
+        [JsonProperty("code")]
+        public string Code { get; set; }
         
+        /// <summary>
+        /// 获取或设置股票名称。
+        /// </summary>
+        [JsonProperty("name")]
+        public string Name { get; set; }
+        
+        /// <summary>
+        /// 获取或设置股票实时数据列表。
+        /// </summary>
+        [JsonProperty("data")]
+        public List<StockRealtiimePrice> Data { get; set; }
     }
 }

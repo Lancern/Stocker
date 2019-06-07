@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Stocker.HBase;
 using Stocker.WebAPI.Models;
@@ -54,7 +55,7 @@ namespace Stocker.WebAPI.Controllers
             };
 
             // 获取所有的股票信息的列表
-            IEnumerable<StockListItem> stocksList = new StockListItem[0];
+            IEnumerable<StockListItem> stocksList = Array.Empty<StockListItem>();
             using (var scanner = await hbaseClient.OpenScanner(InputDataTableName, scannerCreationOptions))
             {
                 while (await scanner.ReadNextBatch())
@@ -88,15 +89,23 @@ namespace Stocker.WebAPI.Controllers
         // GET: /stocks/{code}/realtime
         [HttpGet("{code}/realtime")]
         public async Task<ActionResult<StockRealtimeInfo>> GetStockRealtimeInfo(
-            string code)
+            string code,
+            [FromQuery] DateTime? date)
         {
+            if (date == null)
+            {
+                date = DateTime.Now;
+            }
+            
             throw new NotImplementedException();
         }
 
         // GET: /stocks/{code}/daily
         [HttpGet("{code}/daily")]
-        public async Task<ActionResult<StockDailyInfo>> GetStockDailyInfo(
-            string code)
+        public async Task<ActionResult<IEnumerable<StockDailyInfo>>> GetStockDailyInfo(
+            string code,
+            [FromQuery][BindRequired] DateTime startDate,
+            [FromQuery][BindRequired] DateTime endDate)
         {
             throw new NotImplementedException();
         }
