@@ -87,7 +87,7 @@ namespace Stocker.HBase.Implementations
             EnsureNotDisposed();
 
             HttpResponseMessage response;
-            using (var httpClient = _httpClientFactory.CreateClient())
+            using (var httpClient = CreateHttpClient())
             {
                 response = await httpClient.GetAsync(string.Empty);
             }
