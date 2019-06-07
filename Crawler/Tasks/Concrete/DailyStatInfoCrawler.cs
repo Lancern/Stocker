@@ -107,7 +107,10 @@ namespace Stocker.Crawler.Tasks.Concrete
                 }
 
                 var stockStat = await StockInfoProvider.GetDailyStatisticsInfo(stockCode, date, date);
-                stockInfosList.Add(stockStat);
+                if (stockStat != null)
+                {
+                    stockInfosList.Add(stockStat);
+                }
             }
 
             var rows = stockInfosList.Select(item => GetRow(item, timestamp));
