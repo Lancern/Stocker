@@ -33,7 +33,6 @@ namespace Stocker.HBase.Implementations
         private readonly string _address;
         private readonly int _port;
         private readonly IHttpClientFactory _httpClientFactory;
-        private bool _disposed;
         
         /// <summary>
         /// 初始化 <see cref="DefaultHBaseClient"/> 类的新实例。
@@ -57,7 +56,6 @@ namespace Stocker.HBase.Implementations
             _address = address ?? throw new ArgumentNullException(nameof(address));
             _port = port;
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-            _disposed = false;
         }
 
         /// <summary>
@@ -76,21 +74,10 @@ namespace Stocker.HBase.Implementations
 
             return httpClient;
         }
-
-        /// <summary>
-        /// 当当前对象已经被 Dispose 时抛出 <see cref="ObjectDisposedException"/> 异常。
-        /// </summary>
-        /// <exception cref="ObjectDisposedException"></exception>
-        private void EnsureNotDisposed()
-        {
-            if (_disposed)
-                throw new ObjectDisposedException(GetType().FullName);
-        }
         
         /// <inheritdoc />
         public async Task Add(string tableName, IEnumerable<HBaseRow> rows)
         {
-            EnsureNotDisposed();
             if (tableName == null)
                 throw new ArgumentNullException(nameof(tableName));
             if (rows == null)
@@ -117,7 +104,6 @@ namespace Stocker.HBase.Implementations
         /// <inheritdoc />
         public async Task<HBaseRow> Find(string tableName, string rowKey, HBaseFindOptions options = null)
         {
-            EnsureNotDisposed();
             if (tableName == null)
                 throw new ArgumentNullException(nameof(tableName));
             if (rowKey == null)
@@ -165,7 +151,6 @@ namespace Stocker.HBase.Implementations
         /// <inheritdoc />
         public async Task<IHBaseScanner> OpenScanner(string tableName, HBaseScannerCreationOptions options = null)
         {
-            EnsureNotDisposed();
             if (tableName == null)
                 throw new ArgumentNullException(nameof(tableName));
 
