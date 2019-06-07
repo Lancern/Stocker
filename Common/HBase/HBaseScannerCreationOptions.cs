@@ -50,6 +50,11 @@ namespace Stocker.HBase
         /// 获取或设置结束时间戳。
         /// </summary>
         public int? EndTime { get; set; }
+        
+        /// <summary>
+        /// 获取或设置返回的版本的最大数量。
+        /// </summary>
+        public int? MaxVersions { get; set; }
 
         /// <summary>
         /// 向 Scanner 添加列。

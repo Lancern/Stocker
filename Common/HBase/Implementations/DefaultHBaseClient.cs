@@ -155,37 +155,11 @@ namespace Stocker.HBase.Implementations
                 throw new ArgumentNullException(nameof(tableName));
 
             // 构造请求负载
-            var scannerOptionsJson = new JObject();
-            if (options?.Columns != null)
+            var contentJson = string.Empty;
+            if (options != null)
             {
-                scannerOptionsJson.Add("column", HBaseSerializationHelper.ToJToken(options.Columns));
+                contentJson = HBaseSerializationHelper.SerializeObject(options);
             }
-
-            if (options?.StartRowKey != null)
-            {
-                var startRowKeyBytes = Encoding.UTF8.GetBytes(options.StartRowKey);
-                scannerOptionsJson.Add("startRow", JToken.FromObject(Convert.ToBase64String(startRowKeyBytes)));
-            }
-
-            if (options?.EndRowKey != null)
-            {
-                var endRowKeyBytes = Encoding.UTF8.GetBytes(options.EndRowKey);
-                scannerOptionsJson.Add("endRow", JToken.FromObject(Convert.ToBase64String(endRowKeyBytes)));
-            }
-
-            if (options?.StartTime != null)
-            {
-                scannerOptionsJson.Add("startTime", JToken.FromObject(options.StartTime));
-            }
-
-            if (options?.EndTime != null)
-            {
-                scannerOptionsJson.Add("endTime", JToken.FromObject(options.EndTime));
-            }
-
-            scannerOptionsJson.Add("batch", JToken.FromObject(options?.Batch ?? DefaultScannerBatchSize));
-
-            var contentJson = HBaseSerializationHelper.SerializeJToken(scannerOptionsJson);
 
             // 发送 HTTP 请求
             var url = $"{tableName}/scanner";

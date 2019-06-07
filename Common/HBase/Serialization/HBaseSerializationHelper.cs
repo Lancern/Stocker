@@ -14,7 +14,8 @@ namespace Stocker.HBase.Serialization
         {
             new HBaseColumnJsonConverter(), 
             new HBaseCellJsonConverter(), 
-            new HBaseRowJsonConverter()
+            new HBaseRowJsonConverter(),
+            new HBaseScannerCreationOptionsJsonConverter()
         };
 
         /// <summary>
