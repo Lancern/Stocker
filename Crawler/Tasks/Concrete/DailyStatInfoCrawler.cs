@@ -12,7 +12,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     /// <summary>
     /// 提供日统计数据爬虫的逻辑。
     /// </summary>
-    [CrawlerTask(1)]
+    [CrawlerTask(60)]
     public sealed class DailyStatInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
         private const string HBaseTableName = "stocks";
@@ -118,18 +118,18 @@ namespace Stocker.Crawler.Tasks.Concrete
         protected override async Task RunExclusive()
         {
             var ts = DateTime.Now;
-//            if (ts.TimeOfDay < new TimeSpan(15, 0, 0) ||
-//                ts.TimeOfDay > new TimeSpan(16, 0, 0))
-//            {
-//                // 15:00 - 16:00 以外时间不执行
-//                return;
-//            }
-//
-//            if (ts.DayOfWeek == DayOfWeek.Saturday || ts.DayOfWeek == DayOfWeek.Sunday)
-//            {
-//                // 周六周日不执行
-//                return;
-//            }
+            if (ts.TimeOfDay < new TimeSpan(15, 0, 0) ||
+                ts.TimeOfDay > new TimeSpan(16, 0, 0))
+            {
+                // 15:00 - 16:00 以外时间不执行
+                return;
+            }
+
+            if (ts.DayOfWeek == DayOfWeek.Saturday || ts.DayOfWeek == DayOfWeek.Sunday)
+            {
+                // 周六周日不执行
+                return;
+            }
             
             // 获取所有的股票代码
             var stocksCodeList = new List<string>();
