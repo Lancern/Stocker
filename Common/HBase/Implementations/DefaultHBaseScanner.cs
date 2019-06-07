@@ -60,7 +60,7 @@ namespace Stocker.HBase.Implementations
         private void InitializeHttpClient(string endpoint)
         {
             _httpClient.BaseAddress = new Uri(endpoint);
-            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("text/json");
+            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
         }
 
         ~DefaultHBaseScanner()

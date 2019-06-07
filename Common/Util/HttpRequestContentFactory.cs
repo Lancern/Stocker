@@ -20,7 +20,7 @@ namespace Stocker.Util
             if (json == null)
                 throw new ArgumentNullException(nameof(json));
             
-            return new StringContent(json, Encoding.UTF8, "text/json");
+            return new StringContent(json, Encoding.UTF8, "application/json");
         }
     }
 }
