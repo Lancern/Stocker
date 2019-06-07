@@ -111,10 +111,7 @@ namespace Stocker.Crawler.Tasks.Concrete
             }
 
             var rows = stockInfosList.Select(item => GetRow(item, timestamp));
-            using (var hbaseClient = HBaseClientFactory.Create())
-            {
-                await hbaseClient.Add(HBaseTableName, rows);
-            }
+            await HBaseClientFactory.Create().Add(HBaseTableName, rows);
         }
 
         /// <inheritdoc />
@@ -136,15 +133,13 @@ namespace Stocker.Crawler.Tasks.Concrete
             
             // 获取所有的股票代码
             var stocksCodeList = new List<string>();
-            using (var hbaseClient = HBaseClientFactory.Create())
+            var hbaseClient = HBaseClientFactory.Create();
+            var scannerCreationOptions = new HBaseScannerCreationOptions { Batch = 1000 };
+            using (var scanner = await hbaseClient.OpenScanner(HBaseTableName, scannerCreationOptions))
             {
-                var scannerCreationOptions = new HBaseScannerCreationOptions { Batch = 1000 };
-                using (var scanner = await hbaseClient.OpenScanner(HBaseTableName, scannerCreationOptions))
+                while (await scanner.ReadNextBatch())
                 {
-                    while (await scanner.ReadNextBatch())
-                    {
-                        stocksCodeList.AddRange(scanner.CurrentBatch.Select(row => row.Key));
-                    }
+                    stocksCodeList.AddRange(scanner.CurrentBatch.Select(row => row.Key));
                 }
             }
             

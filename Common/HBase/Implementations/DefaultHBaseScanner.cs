@@ -24,8 +24,9 @@ namespace Stocker.HBase.Implementations
             [JsonProperty("Row")]
             public List<HBaseRow> Rows { get; set; }
         }
-        
-        private readonly HttpClient _httpClient;
+
+        private readonly string _endpoint;
+        private readonly IHttpClientFactory _httpClientFactory;
         private List<HBaseRow> _batch;
         private bool _disposed;
 
@@ -41,26 +42,22 @@ namespace Stocker.HBase.Implementations
         /// </exception>
         public DefaultHBaseScanner(string endpoint, IHttpClientFactory httpClientFactory)
         {
-            if (endpoint == null)
-                throw new ArgumentNullException(nameof(endpoint));
-            if (httpClientFactory == null)
-                throw new ArgumentNullException(nameof(httpClientFactory));
-            
-            _httpClient = httpClientFactory.CreateClient();
+            _endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
+            _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
             _batch = null;
             _disposed = false;
-            
-            InitializeHttpClient(endpoint);
         }
 
         /// <summary>
-        /// 初始化 <see cref="HttpClient"/> 实例以用于发送和接收 HTTP 请求。
+        /// 创建新的 <see cref="HttpClient"/> 对象。
         /// </summary>
-        /// <param name="endpoint">当前 Scanner 的 REST API 接入点。</param>
-        private void InitializeHttpClient(string endpoint)
+        /// <returns>创建的 <see cref="HttpClient"/> 对象。</returns>
+        private HttpClient CreateHttpClient()
         {
-            _httpClient.BaseAddress = new Uri(endpoint);
-            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(_endpoint);
+            httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            return httpClient;
         }
 
         ~DefaultHBaseScanner()
@@ -89,7 +86,12 @@ namespace Stocker.HBase.Implementations
         {
             EnsureNotDisposed();
 
-            var response = await _httpClient.GetAsync(string.Empty);
+            HttpResponseMessage response;
+            using (var httpClient = _httpClientFactory.CreateClient())
+            {
+                response = await httpClient.GetAsync(string.Empty);
+            }
+            
             if (!response.IsSuccessStatusCode)
             {
                 throw new HBaseException("HBase 返回了表示操作不成功的 HTTP 状态码：" + response.StatusCode);
@@ -117,7 +119,12 @@ namespace Stocker.HBase.Implementations
         {
             EnsureNotDisposed();
 
-            var response = await _httpClient.DeleteAsync(string.Empty);
+            HttpResponseMessage response;
+            using (var httpClient = CreateHttpClient())
+            {
+                response = await httpClient.DeleteAsync(string.Empty);
+            }
+            
             if (!response.IsSuccessStatusCode)
             {
                 throw new HBaseException("HBase 返回了表示操作不成功的 HTTP 状态码：" + response.StatusCode);
@@ -142,8 +149,6 @@ namespace Stocker.HBase.Implementations
                     {
                         // 丢弃 DeleteScanner 抛出的所有异常
                     }
-                    
-                    _httpClient.Dispose();
                 }
 
                 _disposed = true;

@@ -29,9 +29,10 @@ namespace Stocker.HBase.Implementations
             [JsonProperty("Row")]
             public List<HBaseRow> Rows { get; set; }
         }
-        
+
+        private readonly string _address;
+        private readonly int _port;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly HttpClient _httpClient;
         private bool _disposed;
         
         /// <summary>
@@ -50,32 +51,30 @@ namespace Stocker.HBase.Implementations
         /// </exception>
         public DefaultHBaseClient(string address, int port, IHttpClientFactory httpClientFactory)
         {
-            if (address == null)
-                throw new ArgumentNullException(nameof(address));
             if (port < 0 || port > 65535)
                 throw new ArgumentOutOfRangeException(nameof(port));
-            
+
+            _address = address ?? throw new ArgumentNullException(nameof(address));
+            _port = port;
             _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
-            _httpClient = _httpClientFactory.CreateClient();
             _disposed = false;
-            
-            InitializeHttpClient(address, port);
         }
 
         /// <summary>
-        /// 初始化 <see cref="HttpClient"/> 对象。
+        /// 创建新的 <see cref="HttpClient"/> 对象。
         /// </summary>
-        /// <param name="address">HBase 实例所在主机的地址。</param>
-        /// <param name="port">HBase 实例所在的端口号。</param>
-        private void InitializeHttpClient(string address, int port)
+        /// <returns>创建的 <see cref="HttpClient"/> 对象。</returns>
+        private HttpClient CreateHttpClient()
         {
-            _httpClient.BaseAddress = new UriBuilder
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new UriBuilder
             {
-                Host = address,
-                Port = port
+                Host = _address,
+                Port = _port
             }.Uri;
-            
-            _httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+            httpClient.DefaultRequestHeaders.Accept.ParseAdd("application/json");
+
+            return httpClient;
         }
 
         /// <summary>
@@ -102,7 +101,12 @@ namespace Stocker.HBase.Implementations
 
             var url = $"{tableName}/row_key";
             var content = HttpRequestContentFactory.CreateJsonContent(json);
-            var response = await _httpClient.PutAsync(url, content);
+
+            HttpResponseMessage response;
+            using (var httpClient = CreateHttpClient())
+            {
+                response = await httpClient.PutAsync(url, content);
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -136,7 +140,12 @@ namespace Stocker.HBase.Implementations
             }
 
             var url = urlBuilder.ToString();
-            var response = await _httpClient.GetAsync(url);
+
+            HttpResponseMessage response;
+            using (var httpClient = CreateHttpClient())
+            {
+                response = await httpClient.GetAsync(url);
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -196,7 +205,12 @@ namespace Stocker.HBase.Implementations
             // 发送 HTTP 请求
             var url = $"{tableName}/scanner";
             var content = HttpRequestContentFactory.CreateJsonContent(contentJson);
-            var response = await _httpClient.PutAsync(url, content);
+
+            HttpResponseMessage response;
+            using (var httpClient = CreateHttpClient())
+            {
+                response = await httpClient.PutAsync(url, content);
+            }
 
             if (!response.IsSuccessStatusCode)
             {
@@ -216,16 +230,6 @@ namespace Stocker.HBase.Implementations
             }
 
             return new DefaultHBaseScanner(scannerEpt, _httpClientFactory);
-        }
-
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            if (!_disposed)
-            {
-                _httpClient?.Dispose();
-                _disposed = true;
-            }
         }
     }
 }

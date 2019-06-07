@@ -82,10 +82,7 @@ namespace Stocker.Crawler.Tasks.Concrete
 
             // 将新获取的数据加入到 HBase 中
             var hbaseRows = stocksList.Select(item => GetRow(item, ts));
-            using (var hbaseClient = HBaseClientFactory.Create())
-            {
-                await hbaseClient.Add(HBaseTableName, hbaseRows);
-            }
+            await HBaseClientFactory.Create().Add(HBaseTableName, hbaseRows);
         }
     }
 }

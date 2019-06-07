@@ -7,7 +7,7 @@ namespace Stocker.HBase
     /// <summary>
     /// 提供从 REST API 访问 HBase 实例的方法。
     /// </summary>
-    public interface IHBaseClient : IDisposable
+    public interface IHBaseClient
     {
         /// <summary>
         /// 向 HBase 中添加数据行。
