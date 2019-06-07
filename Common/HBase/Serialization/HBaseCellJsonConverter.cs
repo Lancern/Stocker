@@ -44,7 +44,7 @@ namespace Stocker.HBase.Serialization
             }
 
             existingValue.Column = valueJsonObject["column"]?.ToObject<HBaseColumn>(serializer);
-            existingValue.Timestamp = valueJsonObject["timestamp"]?.Value<int>() ?? 0;
+            existingValue.Timestamp = valueJsonObject["timestamp"]?.Value<long>() ?? 0;
 
             var dataBase64 = valueJsonObject["$"]?.Value<string>();
             if (dataBase64 != null)
