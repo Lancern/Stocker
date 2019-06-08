@@ -16,6 +16,8 @@ namespace Stocker.Crawler.Tasks.Concrete
     public sealed class DailyStatInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
         private const string HBaseTableName = "stocks";
+
+        private readonly IPredictorNotifier _predictorNotifier;
         
         /// <summary>
         /// 初始化 <see cref="DailyStatInfoCrawler"/> 类的新实例。
@@ -24,10 +26,15 @@ namespace Stocker.Crawler.Tasks.Concrete
         ///     <paramref name="stockInfoProvider"/>为null
         ///     或
         ///     <paramref name="hBaseClientFactory"/>为null
+        ///     或
+        ///     <paramref name="predictorNotifier"/>为null
         /// </exception>
-        public DailyStatInfoCrawler(IStockInfoProvider stockInfoProvider, IHBaseClientFactory hBaseClientFactory)
+        public DailyStatInfoCrawler(IStockInfoProvider stockInfoProvider, 
+                                    IHBaseClientFactory hBaseClientFactory,
+                                    IPredictorNotifier predictorNotifier)
             : base(stockInfoProvider, hBaseClientFactory)
         {
+            _predictorNotifier = predictorNotifier ?? throw new ArgumentNullException(nameof(predictorNotifier));
         }
 
         /// <summary>
@@ -156,6 +163,9 @@ namespace Stocker.Crawler.Tasks.Concrete
             }
 
             await consumer;
+            
+            // 通知预测节点
+            await _predictorNotifier.Notify();
         }
     }
 }

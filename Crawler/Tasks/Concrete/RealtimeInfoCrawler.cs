@@ -14,6 +14,8 @@ namespace Stocker.Crawler.Tasks.Concrete
     public sealed class RealtimeInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
         private const string HBaseTableName = "stocks";
+
+        private readonly IPredictorNotifier _predictorNotifier;
         
         /// <summary>
         /// 初始化 <see cref="RealtimeInfoCrawler"/> 类的新实例。
@@ -22,10 +24,15 @@ namespace Stocker.Crawler.Tasks.Concrete
         ///     <paramref name="stockInfoProvider"/>为null
         ///     或
         ///     <paramref name="hBaseClientFactory"/>为null
+        ///     或
+        ///     <paramref name="predictorNotifier"/>为null
         /// </exception>
-        public RealtimeInfoCrawler(IStockInfoProvider stockInfoProvider, IHBaseClientFactory hBaseClientFactory)
+        public RealtimeInfoCrawler(IStockInfoProvider stockInfoProvider, 
+                                   IHBaseClientFactory hBaseClientFactory,
+                                   IPredictorNotifier predictorNotifier)
             : base(stockInfoProvider, hBaseClientFactory)
         {
+            _predictorNotifier = predictorNotifier ?? throw new ArgumentNullException(nameof(predictorNotifier));
         }
 
         /// <summary>
@@ -83,6 +90,9 @@ namespace Stocker.Crawler.Tasks.Concrete
             // 将新获取的数据加入到 HBase 中
             var hbaseRows = stocksList.Select(item => GetRow(item, ts));
             await HBaseClientFactory.Create().Add(HBaseTableName, hbaseRows);
+            
+            // 通知预测节点
+            await _predictorNotifier.Notify();
         }
     }
 }
