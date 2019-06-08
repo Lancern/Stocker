@@ -44,12 +44,12 @@ namespace Stocker.HBase
         /// <summary>
         /// 获取或设置起始时间戳。
         /// </summary>
-        public int? StartTime { get; set; }
+        public long? StartTime { get; set; }
         
         /// <summary>
         /// 获取或设置结束时间戳。
         /// </summary>
-        public int? EndTime { get; set; }
+        public long? EndTime { get; set; }
         
         /// <summary>
         /// 获取或设置返回的版本的最大数量。

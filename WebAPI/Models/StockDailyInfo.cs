@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
+using Stocker.HBase;
 
 namespace Stocker.WebAPI.Models
 {
@@ -61,5 +63,81 @@ namespace Stocker.WebAPI.Models
         /// </summary>
         [JsonProperty("amount")]
         public PredictedNumber Amount { get; set; }
+
+        public static IEnumerable<KeyValuePair<long, StockDailyInfo>> FromHBaseRowCellCoccection(
+            HBaseRowCellCollection dayCells,
+            HBaseRowCellCollection predictCells)
+        {
+            var openPrice = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "open");
+            var closePrice = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "close");
+            var lowestPrice = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "lowest");
+            var highestPrice = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "highest");
+            var totalDeals = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "total");
+            var amount = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "amount");
+
+            var dailyInfo = new Dictionary<long, StockDailyInfo>();
+
+            foreach (var price in openPrice)
+            {
+                if (!dailyInfo.ContainsKey(price.Key))
+                    dailyInfo[price.Key] = new StockDailyInfo
+                    {
+                        Date = new DateTime(price.Key)
+                    };
+                dailyInfo[price.Key].OpenPrice = price.Value;
+            }
+
+            foreach (var price in closePrice)
+            {
+                if (!dailyInfo.ContainsKey(price.Key))
+                    dailyInfo[price.Key] = new StockDailyInfo
+                    {
+                        Date = new DateTime(price.Key)
+                    };
+                dailyInfo[price.Key].SettlementPrice = price.Value;
+            }
+
+            foreach (var price in lowestPrice)
+            {
+                if (!dailyInfo.ContainsKey(price.Key))
+                    dailyInfo[price.Key] = new StockDailyInfo
+                    {
+                        Date = new DateTime(price.Key)
+                    };
+                dailyInfo[price.Key].LowestPrice = price.Value;
+            }
+
+            foreach (var price in highestPrice)
+            {
+                if (!dailyInfo.ContainsKey(price.Key))
+                    dailyInfo[price.Key] = new StockDailyInfo
+                    {
+                        Date = new DateTime(price.Key)
+                    };
+                dailyInfo[price.Key].HighestPrice = price.Value;
+            }
+
+            foreach (var deal in totalDeals)
+            {
+                if (!dailyInfo.ContainsKey(deal.Key))
+                    dailyInfo[deal.Key] = new StockDailyInfo
+                    {
+                        Date = new DateTime(deal.Key)
+                    };
+                dailyInfo[deal.Key].TotalDeals = deal.Value;
+            }
+
+            foreach (var deal in amount)
+            {
+                if (!dailyInfo.ContainsKey(deal.Key))
+                    dailyInfo[deal.Key] = new StockDailyInfo
+                    {
+                        Date = new DateTime(deal.Key)
+                    };
+                dailyInfo[deal.Key].Amount = deal.Value;
+            }
+
+            return dailyInfo;
+        }
     }
 }

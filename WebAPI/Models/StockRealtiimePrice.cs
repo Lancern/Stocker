@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using Newtonsoft.Json;
+using Stocker.HBase;
 
 namespace Stocker.WebAPI.Models
 {

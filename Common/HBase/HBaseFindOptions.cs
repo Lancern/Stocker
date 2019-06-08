@@ -20,7 +20,7 @@ namespace Stocker.HBase
         /// <summary>
         /// 获取或设置期望的时间戳。
         /// </summary>
-        public int? Timestamp { get; set; }
+        public long? Timestamp { get; set; }
         
         /// <summary>
         /// 获取或设置在结果集中包含的版本数量。

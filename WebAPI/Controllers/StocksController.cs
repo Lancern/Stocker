@@ -96,8 +96,39 @@ namespace Stocker.WebAPI.Controllers
             {
                 date = DateTime.Now;
             }
-            
-            throw new NotImplementedException();
+
+            var hbaseClient = _hbaseClientFactory.Create();
+
+            var dayRow = await hbaseClient.Find(InputDataTableName, code);
+            if (dayRow == null)
+                return NotFound();
+
+            // 获取股票名称
+            var name = dayRow.Cells.Get("name", "name").ToArray()[0].Data.ToString();
+
+            // 获取timestamp在当天的所有cell
+            var dayCells = new HBaseRowCellCollection();
+            foreach (var cell in dayRow.Cells)
+            {
+                if (new DateTime(cell.Timestamp).ToString("yyyy/MM/dd") == date.Value.ToString("yy/MM/dd"))
+                    dayCells.Add(cell);
+            }
+
+            var predictRow = await hbaseClient.Find(PredictionDataTableName, code);
+
+            var predictCells = new HBaseRowCellCollection();
+            foreach (var cell in predictRow.Cells)
+            {
+                if (new DateTime(cell.Timestamp).ToString("yyyy/MM/dd") == date.Value.ToString("yy/MM/dd"))
+                    dayCells.Add(cell);
+            }
+
+            // 合并真实值和预测值
+            var realtimeInfo = StockRealtimeInfo.FromHBaseRowCellCollection(dayCells, predictCells);
+            realtimeInfo.Code = code;
+            realtimeInfo.Name = name;
+
+            return new ActionResult<StockRealtimeInfo>(realtimeInfo);
         }
 
         // GET: /stocks/{code}/daily
@@ -107,7 +138,47 @@ namespace Stocker.WebAPI.Controllers
             [FromQuery][BindRequired] DateTime startDate,
             [FromQuery][BindRequired] DateTime endDate)
         {
-            throw new NotImplementedException();
+            if (startDate == null || endDate == null)
+                return BadRequest();
+
+            if (startDate > endDate)
+                return BadRequest();
+
+            var hbaseClient = _hbaseClientFactory.Create();
+
+            var dayRow = await hbaseClient.Find(InputDataTableName, code);
+            if (dayRow == null)
+                return NotFound();
+
+            var name = dayRow.Cells.Get("name", "name").ToArray()[0].Data.ToString();
+
+            var dayCells = new HBaseRowCellCollection();
+            foreach (var cell in dayRow.Cells)
+            {
+                if (cell.Timestamp >= startDate.Ticks && cell.Timestamp <= endDate.Ticks)
+                    dayCells.Add(cell);
+            }
+
+            var predictRow = await hbaseClient.Find(PredictionDataTableName, code);
+
+            var predictCells = new HBaseRowCellCollection();
+            foreach (var cell in predictRow.Cells)
+            {
+                if (cell.Timestamp >= startDate.Ticks && cell.Timestamp <= endDate.Ticks)
+                    dayCells.Add(cell);
+            }
+
+
+            var dailyInfo = new List<StockDailyInfo>();
+            foreach (var item in StockDailyInfo.FromHBaseRowCellCoccection(dayCells, predictCells))
+            {
+                var info = item.Value;
+                info.Code = code;
+                info.Name = name;
+                dailyInfo.Add(info);
+            }
+
+            return new ActionResult<IEnumerable<StockDailyInfo>>(dailyInfo);
         }
     }
 }
