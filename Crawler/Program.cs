@@ -44,9 +44,6 @@ namespace Stocker.Crawler
             // 添加 IHttpClientFactory 依赖
             services.AddHttpClient();
             
-            // 添加应用程序业务入口
-            services.AddApplicationRunner();
-            
             // 添加 Crawler Task Factory
             services.AddDefaultCrawlerTaskManagerFactory();
             
@@ -59,6 +56,21 @@ namespace Stocker.Crawler
                 return false;
             }
             services.AddDefaultCrawler(stockListAppId, stockDailyStatAppId);
+            
+            // 添加预测节点通知服务
+            var predictorHost = config.GetSection("Predictor").GetValue<string>("Endpoint");
+            if (string.IsNullOrEmpty(predictorHost))
+            {
+                logger.Warn("没有配置预测节点的主机地址。预测节点通知服务将被降级为空实现。");
+                services.AddEmptyPredictorNotifier();
+            }
+            else
+            {
+                services.AddDefaultPredictorNotifier(predictorHost);
+            }
+            
+            // 添加应用程序业务入口
+            services.AddApplicationRunner();
 
             return true;
         }
