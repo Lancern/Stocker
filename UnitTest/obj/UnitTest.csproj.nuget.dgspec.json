@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj": {}
+    "D:\\Documents\\Projects\\C#\\Stocker\\UnitTest\\UnitTest.csproj": {}
   },
   "projects": {
     "D:\\Documents\\Projects\\C#\\Stocker\\Common\\Common.csproj": {
@@ -76,14 +76,14 @@
         }
       }
     },
-    "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj": {
+    "D:\\Documents\\Projects\\C#\\Stocker\\UnitTest\\UnitTest.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj",
-        "projectName": "Stocker.Crawler",
-        "projectPath": "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj",
+        "projectUniqueName": "D:\\Documents\\Projects\\C#\\Stocker\\UnitTest\\UnitTest.csproj",
+        "projectName": "Stocker.UnitTest",
+        "projectPath": "D:\\Documents\\Projects\\C#\\Stocker\\UnitTest\\UnitTest.csproj",
         "packagesPath": "C:\\Users\\Shen Yunhan\\.nuget\\packages\\",
-        "outputPath": "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\obj\\",
+        "outputPath": "D:\\Documents\\Projects\\C#\\Stocker\\UnitTest\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -117,25 +117,9 @@
       "frameworks": {
         "netcoreapp2.1": {
           "dependencies": {
-            "Microsoft.Extensions.Configuration": {
+            "Microsoft.NET.Test.Sdk": {
               "target": "Package",
-              "version": "[2.2.0, )"
-            },
-            "Microsoft.Extensions.Configuration.FileExtensions": {
-              "target": "Package",
-              "version": "[2.2.0, )"
-            },
-            "Microsoft.Extensions.Configuration.Json": {
-              "target": "Package",
-              "version": "[2.2.0, )"
-            },
-            "Microsoft.Extensions.DependencyInjection": {
-              "target": "Package",
-              "version": "[2.2.0, )"
-            },
-            "Microsoft.Extensions.Http": {
-              "target": "Package",
-              "version": "[2.2.0, )"
+              "version": "[15.9.0, )"
             },
             "Microsoft.NETCore.App": {
               "suppressParent": "All",
@@ -143,13 +127,13 @@
               "version": "[2.1.0, )",
               "autoReferenced": true
             },
-            "NLog.Extensions.Logging": {
+            "xunit": {
               "target": "Package",
-              "version": "[1.5.0, )"
+              "version": "[2.4.0, )"
             },
-            "Newtonsoft.Json": {
+            "xunit.runner.visualstudio": {
               "target": "Package",
-              "version": "[12.0.2, )"
+              "version": "[2.4.0, )"
             }
           },
           "imports": [

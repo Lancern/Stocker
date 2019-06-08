@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj": {}
+    "D:\\Documents\\Projects\\C#\\Stocker\\WebAPI\\WebAPI.csproj": {}
   },
   "projects": {
     "D:\\Documents\\Projects\\C#\\Stocker\\Common\\Common.csproj": {
@@ -76,14 +76,14 @@
         }
       }
     },
-    "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj": {
+    "D:\\Documents\\Projects\\C#\\Stocker\\WebAPI\\WebAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj",
-        "projectName": "Stocker.Crawler",
-        "projectPath": "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\Crawler.csproj",
+        "projectUniqueName": "D:\\Documents\\Projects\\C#\\Stocker\\WebAPI\\WebAPI.csproj",
+        "projectName": "Stocker.WebAPI",
+        "projectPath": "D:\\Documents\\Projects\\C#\\Stocker\\WebAPI\\WebAPI.csproj",
         "packagesPath": "C:\\Users\\Shen Yunhan\\.nuget\\packages\\",
-        "outputPath": "D:\\Documents\\Projects\\C#\\Stocker\\Crawler\\obj\\",
+        "outputPath": "D:\\Documents\\Projects\\C#\\Stocker\\WebAPI\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
@@ -117,39 +117,23 @@
       "frameworks": {
         "netcoreapp2.1": {
           "dependencies": {
-            "Microsoft.Extensions.Configuration": {
+            "Microsoft.AspNetCore": {
               "target": "Package",
-              "version": "[2.2.0, )"
+              "version": "[2.1.7, )"
             },
-            "Microsoft.Extensions.Configuration.FileExtensions": {
+            "Microsoft.AspNetCore.HttpsPolicy": {
               "target": "Package",
-              "version": "[2.2.0, )"
+              "version": "[2.1.1, )"
             },
-            "Microsoft.Extensions.Configuration.Json": {
+            "Microsoft.AspNetCore.Mvc": {
               "target": "Package",
-              "version": "[2.2.0, )"
-            },
-            "Microsoft.Extensions.DependencyInjection": {
-              "target": "Package",
-              "version": "[2.2.0, )"
-            },
-            "Microsoft.Extensions.Http": {
-              "target": "Package",
-              "version": "[2.2.0, )"
+              "version": "[2.1.3, )"
             },
             "Microsoft.NETCore.App": {
               "suppressParent": "All",
               "target": "Package",
               "version": "[2.1.0, )",
               "autoReferenced": true
-            },
-            "NLog.Extensions.Logging": {
-              "target": "Package",
-              "version": "[1.5.0, )"
-            },
-            "Newtonsoft.Json": {
-              "target": "Package",
-              "version": "[12.0.2, )"
             }
           },
           "imports": [

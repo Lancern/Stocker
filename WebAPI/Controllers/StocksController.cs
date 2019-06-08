@@ -88,8 +88,17 @@ namespace Stocker.WebAPI.Controllers
         // GET: /stocks/{code}/realtime
         [HttpGet("{code}/realtime")]
         public async Task<ActionResult<StockRealtimeInfo>> GetStockRealtimeInfo(
-            string code)
+            string code,
+            [FromQuery] DateTime? date)
         {
+            var hbaseClient = _hbaseClientFactory.Create();
+            var scannerCreationOptions = new HBaseScannerCreationOptions
+            {
+                Batch = 1000
+            };
+
+
+
             throw new NotImplementedException();
         }
 
