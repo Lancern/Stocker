@@ -55,7 +55,14 @@ namespace Stocker.Crawler.Tasks.Concrete
             {
                 Column = new HBaseColumn("price", "price"),
                 Timestamp = timestamp.Ticks,
-                Data = Encoding.UTF8.GetBytes(stockInfo.CurrentPrice.ToString(""))
+                Data = Encoding.UTF8.GetBytes(stockInfo.CurrentPrice.ToString("G"))
+            });
+            
+            row.Cells.Add(new HBaseCell
+            {
+                Column = new HBaseColumn("priceChange", "priceChange"),
+                Timestamp = timestamp.Ticks,
+                Data = Encoding.UTF8.GetBytes(stockInfo.PriceRelativeChange.ToString("G"))
             });
             
             row.Cells.Add(new HBaseCell
