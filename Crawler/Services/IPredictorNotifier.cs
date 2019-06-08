@@ -52,5 +52,21 @@ namespace Stocker.Crawler.Services.DependencyInjection
                     servicesProvider.GetService<IHttpClientFactory>(),
                     servicesProvider.GetService<ILogger<DefaultPredictorNotifier>>()));
         }
+
+        /// <summary>
+        /// 将 <see cref="IPredictorNotifier"/> 的空实现添加到服务容器中。
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException">
+        ///     <paramref name="services"/>为null
+        /// </exception>
+        public static IServiceCollection AddEmptyPredictorNotifier(this IServiceCollection services)
+        {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
+            return services.AddSingleton<IPredictorNotifier, EmptyPredictorNotifier>();
+        }
     }
 }
