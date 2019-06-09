@@ -15,7 +15,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     [CrawlerTask(60)]
     public sealed class DailyStatInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
-        private const string HBaseTableName = "stocks";
+        private const string HBaseTableName = "StockInfoOfDay";
 
         private readonly IPredictorNotifier _predictorNotifier;
         

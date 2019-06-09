@@ -13,7 +13,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     [CrawlerTask(3)]
     public sealed class RealtimeInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
-        private const string HBaseTableName = "stocks";
+        private const string HBaseTableName = "StockInfoOfDay";
 
         private readonly IPredictorNotifier _predictorNotifier;
         
