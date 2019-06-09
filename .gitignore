@@ -3,3 +3,11 @@
 ################################################################################
 
 /.vs
+/Common/obj
+/Common/bin
+/Crawler/obj
+/Crawler/bin
+/UnitTest/obj
+/UnitTest/bin
+/WebAPI/obj
+/WebAPI/bin
