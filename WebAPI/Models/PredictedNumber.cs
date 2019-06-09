@@ -41,7 +41,7 @@ namespace Stocker.WebAPI.Models
         /// <param name="predictCells">prediction表中符合条件的cell</param>
         /// <param name="columnName">要合并的列族名</param>
         /// <returns></returns>
-        public static IEnumerable<KeyValuePair<long, PredictedNumber>> FromHBaseRowCellCollection(
+        public static Dictionary<long, PredictedNumber> FromHBaseRowCellCollection(
             HBaseRowCellCollection dayCells,
             HBaseRowCellCollection predictCells,
             string columnName)
@@ -54,7 +54,10 @@ namespace Stocker.WebAPI.Models
             foreach (var actualValue in dayCells.Get(columnName, columnName))
             {
                 if (!pdNum.ContainsKey(actualValue.Timestamp))
+                {
                     pdNum[actualValue.Timestamp] = new PredictedNumber();
+                }
+                
                 pdNum[actualValue.Timestamp].ActualValue =
                     double.Parse(Encoding.UTF8.GetString(actualValue.Data));
             }
@@ -62,7 +65,10 @@ namespace Stocker.WebAPI.Models
             foreach (var predictedMinValue in predictCells.Get(columnName, "lower"))
             {
                 if (!pdNum.ContainsKey(predictedMinValue.Timestamp))
+                {
                     pdNum[predictedMinValue.Timestamp] = new PredictedNumber();
+                }
+                
                 pdNum[predictedMinValue.Timestamp].PredictedMinValue =
                     double.Parse(Encoding.UTF8.GetString(predictedMinValue.Data));
             }
@@ -70,7 +76,10 @@ namespace Stocker.WebAPI.Models
             foreach (var predictedValue in predictCells.Get(columnName, "value"))
             {
                 if (!pdNum.ContainsKey(predictedValue.Timestamp))
+                {
                     pdNum[predictedValue.Timestamp] = new PredictedNumber();
+                }
+                
                 pdNum[predictedValue.Timestamp].PredictedValue =
                     double.Parse(Encoding.UTF8.GetString(predictedValue.Data));
             }
@@ -78,7 +87,10 @@ namespace Stocker.WebAPI.Models
             foreach (var predictedMaxValue in predictCells.Get(columnName, "upper"))
             {
                 if (!pdNum.ContainsKey(predictedMaxValue.Timestamp))
+                {
                     pdNum[predictedMaxValue.Timestamp] = new PredictedNumber();
+                }
+                
                 pdNum[predictedMaxValue.Timestamp].PredictedMaxValue =
                     double.Parse(Encoding.UTF8.GetString(predictedMaxValue.Data));
             }

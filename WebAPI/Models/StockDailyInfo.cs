@@ -64,7 +64,13 @@ namespace Stocker.WebAPI.Models
         [JsonProperty("amount")]
         public PredictedNumber Amount { get; set; }
 
-        public static IEnumerable<KeyValuePair<long, StockDailyInfo>> FromHBaseRowCellCoccection(
+        /// <summary>
+        /// 从 HBase 数据创建 <see cref="StockDailyInfo"/> 封装。
+        /// </summary>
+        /// <param name="dayCells">日统计数据。</param>
+        /// <param name="predictCells">预测数据。</param>
+        /// <returns></returns>
+        public static Dictionary<long, StockDailyInfo> FromHBaseRowCellCollection(
             HBaseRowCellCollection dayCells,
             HBaseRowCellCollection predictCells)
         {
@@ -80,60 +86,72 @@ namespace Stocker.WebAPI.Models
             foreach (var price in openPrice)
             {
                 if (!dailyInfo.ContainsKey(price.Key))
+                {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
                         Date = new DateTime(price.Key)
                     };
+                }
                 dailyInfo[price.Key].OpenPrice = price.Value;
             }
 
             foreach (var price in closePrice)
             {
                 if (!dailyInfo.ContainsKey(price.Key))
+                {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
                         Date = new DateTime(price.Key)
                     };
+                }
                 dailyInfo[price.Key].SettlementPrice = price.Value;
             }
 
             foreach (var price in lowestPrice)
             {
                 if (!dailyInfo.ContainsKey(price.Key))
+                {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
                         Date = new DateTime(price.Key)
                     };
+                }
                 dailyInfo[price.Key].LowestPrice = price.Value;
             }
 
             foreach (var price in highestPrice)
             {
                 if (!dailyInfo.ContainsKey(price.Key))
+                {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
                         Date = new DateTime(price.Key)
                     };
+                }
                 dailyInfo[price.Key].HighestPrice = price.Value;
             }
 
             foreach (var deal in totalDeals)
             {
                 if (!dailyInfo.ContainsKey(deal.Key))
+                {
                     dailyInfo[deal.Key] = new StockDailyInfo
                     {
                         Date = new DateTime(deal.Key)
                     };
+                }
                 dailyInfo[deal.Key].TotalDeals = deal.Value;
             }
 
             foreach (var deal in amount)
             {
                 if (!dailyInfo.ContainsKey(deal.Key))
+                {
                     dailyInfo[deal.Key] = new StockDailyInfo
                     {
                         Date = new DateTime(deal.Key)
                     };
+                }
                 dailyInfo[deal.Key].Amount = deal.Value;
             }
 

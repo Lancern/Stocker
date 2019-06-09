@@ -102,7 +102,9 @@ namespace Stocker.WebAPI.Controllers
 
             var dayRow = await hbaseClient.Find(InputDataTableName, code);
             if (dayRow == null)
+            {
                 return NotFound();
+            }
 
             // 获取股票名称
             var name = Encoding.UTF8.GetString(dayRow.Cells.Get("name", "name").ToArray()[0].Data);
@@ -112,7 +114,9 @@ namespace Stocker.WebAPI.Controllers
             foreach (var cell in dayRow.Cells)
             {
                 if (new DateTime(cell.Timestamp).Date == date.Value.Date)
+                {
                     dayCells.Add(cell);
+                }
             }
 
             var predictRow = await hbaseClient.Find(PredictionDataTableName, code);
@@ -121,7 +125,9 @@ namespace Stocker.WebAPI.Controllers
             foreach (var cell in predictRow.Cells)
             {
                 if (new DateTime(cell.Timestamp).Date == date.Value.Date)
+                {
                     dayCells.Add(cell);
+                }
             }
 
             // 合并真实值和预测值
@@ -146,7 +152,9 @@ namespace Stocker.WebAPI.Controllers
 
             var dayRow = await hbaseClient.Find(InputDataTableName, code);
             if (dayRow == null)
+            {
                 return NotFound();
+            }
 
             var name = Encoding.UTF8.GetString(dayRow.Cells.Get("name", "name").ToArray()[0].Data);
 
@@ -154,7 +162,9 @@ namespace Stocker.WebAPI.Controllers
             foreach (var cell in dayRow.Cells)
             {
                 if (cell.Timestamp >= startDate.Ticks && cell.Timestamp <= endDate.Ticks)
+                {
                     dayCells.Add(cell);
+                }
             }
 
             var predictRow = await hbaseClient.Find(PredictionDataTableName, code);
@@ -163,12 +173,13 @@ namespace Stocker.WebAPI.Controllers
             foreach (var cell in predictRow.Cells)
             {
                 if (cell.Timestamp >= startDate.Ticks && cell.Timestamp <= endDate.Ticks)
+                {
                     dayCells.Add(cell);
+                }
             }
-
-
+            
             var dailyInfo = new List<StockDailyInfo>();
-            foreach (var item in StockDailyInfo.FromHBaseRowCellCoccection(dayCells, predictCells))
+            foreach (var item in StockDailyInfo.FromHBaseRowCellCollection(dayCells, predictCells))
             {
                 var info = item.Value;
                 info.Code = code;
