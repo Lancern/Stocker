@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -104,13 +105,13 @@ namespace Stocker.WebAPI.Controllers
                 return NotFound();
 
             // 获取股票名称
-            var name = dayRow.Cells.Get("name", "name").ToArray()[0].Data.ToString();
+            var name = Encoding.UTF8.GetString(dayRow.Cells.Get("name", "name").ToArray()[0].Data);
 
             // 获取timestamp在当天的所有cell
             var dayCells = new HBaseRowCellCollection();
             foreach (var cell in dayRow.Cells)
             {
-                if (new DateTime(cell.Timestamp).ToString("yyyy/MM/dd") == date.Value.ToString("yy/MM/dd"))
+                if (new DateTime(cell.Timestamp).Date == date.Value.Date)
                     dayCells.Add(cell);
             }
 
@@ -119,7 +120,7 @@ namespace Stocker.WebAPI.Controllers
             var predictCells = new HBaseRowCellCollection();
             foreach (var cell in predictRow.Cells)
             {
-                if (new DateTime(cell.Timestamp).ToString("yyyy/MM/dd") == date.Value.ToString("yy/MM/dd"))
+                if (new DateTime(cell.Timestamp).Date == date.Value.Date)
                     dayCells.Add(cell);
             }
 
@@ -138,9 +139,6 @@ namespace Stocker.WebAPI.Controllers
             [FromQuery][BindRequired] DateTime startDate,
             [FromQuery][BindRequired] DateTime endDate)
         {
-            if (startDate == null || endDate == null)
-                return BadRequest();
-
             if (startDate > endDate)
                 return BadRequest();
 
@@ -150,7 +148,7 @@ namespace Stocker.WebAPI.Controllers
             if (dayRow == null)
                 return NotFound();
 
-            var name = dayRow.Cells.Get("name", "name").ToArray()[0].Data.ToString();
+            var name = Encoding.UTF8.GetString(dayRow.Cells.Get("name", "name").ToArray()[0].Data);
 
             var dayCells = new HBaseRowCellCollection();
             foreach (var cell in dayRow.Cells)
