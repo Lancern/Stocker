@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Stocker.Crawler.Services;
 using Stocker.HBase;
 
@@ -16,6 +17,7 @@ namespace Stocker.Crawler.Tasks.Concrete
         private const string RealtimeDataHBaseTableName = "StockInfoRealTime";
 
         private readonly IPredictorNotifier _predictorNotifier;
+        private readonly ILogger<RealtimeInfoCrawler> _logger;
         
         /// <summary>
         /// 初始化 <see cref="RealtimeInfoCrawler"/> 类的新实例。
@@ -26,13 +28,17 @@ namespace Stocker.Crawler.Tasks.Concrete
         ///     <paramref name="hBaseClientFactory"/>为null
         ///     或
         ///     <paramref name="predictorNotifier"/>为null
+        ///     或
+        ///     <paramref name="logger"/>为null
         /// </exception>
         public RealtimeInfoCrawler(IStockInfoProvider stockInfoProvider, 
                                    IHBaseClientFactory hBaseClientFactory,
-                                   IPredictorNotifier predictorNotifier)
+                                   IPredictorNotifier predictorNotifier,
+                                   ILogger<RealtimeInfoCrawler> logger)
             : base(stockInfoProvider, hBaseClientFactory)
         {
             _predictorNotifier = predictorNotifier ?? throw new ArgumentNullException(nameof(predictorNotifier));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -93,10 +99,14 @@ namespace Stocker.Crawler.Tasks.Concrete
             }
             
             var stocksList = await StockInfoProvider.GetRealtimeStocksList();
+            
+            _logger.LogInformation("获取股票实时价格列表完成。共获取到 {0} 条数据。", stocksList.Count);
 
             // 将新获取的数据加入到 HBase 中
             var hbaseRows = stocksList.Select(item => GetRow(item, ts));
             await HBaseClientFactory.Create().Add(RealtimeDataHBaseTableName, hbaseRows);
+            
+            _logger.LogTrace("准备通知预测节点数据更新");
             
             // 通知预测节点
             await _predictorNotifier.Notify();

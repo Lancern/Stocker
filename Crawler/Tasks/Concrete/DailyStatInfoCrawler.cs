@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Stocker.Crawler.Services;
 using Stocker.Crawler.Utils;
 using Stocker.HBase;
@@ -18,6 +19,7 @@ namespace Stocker.Crawler.Tasks.Concrete
         private const string DailyDataHBaseTableName = "StockInfoOfDay";
 
         private readonly IPredictorNotifier _predictorNotifier;
+        private readonly ILogger<DailyStatInfoCrawler> _logger;
         
         /// <summary>
         /// 初始化 <see cref="DailyStatInfoCrawler"/> 类的新实例。
@@ -28,13 +30,17 @@ namespace Stocker.Crawler.Tasks.Concrete
         ///     <paramref name="hBaseClientFactory"/>为null
         ///     或
         ///     <paramref name="predictorNotifier"/>为null
+        ///     或
+        ///     <paramref name="logger"/>为null
         /// </exception>
         public DailyStatInfoCrawler(IStockInfoProvider stockInfoProvider, 
                                     IHBaseClientFactory hBaseClientFactory,
-                                    IPredictorNotifier predictorNotifier)
+                                    IPredictorNotifier predictorNotifier,
+                                    ILogger<DailyStatInfoCrawler> logger)
             : base(stockInfoProvider, hBaseClientFactory)
         {
             _predictorNotifier = predictorNotifier ?? throw new ArgumentNullException(nameof(predictorNotifier));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -144,6 +150,8 @@ namespace Stocker.Crawler.Tasks.Concrete
             // 获取所有的股票代码
             var stocksList = await StockInfoProvider.GetRealtimeStocksList();
             
+            _logger.LogInformation("获取所有股票代码完毕。一共获取到 {0} 支股票代码。", stocksList.Count);
+            
             // API 调用限制：500毫秒间隔，最大并发请求数 = 3
             var workQueue = new ProducerConsumerQueue<string>(3);
             var consumer = Task.Run(() => ConsumeAndCrawl(workQueue, ts));
@@ -154,6 +162,8 @@ namespace Stocker.Crawler.Tasks.Concrete
             }
 
             await consumer;
+            
+            _logger.LogTrace("准备通知预测节点数据更新");
             
             // 通知预测节点
             await _predictorNotifier.Notify();
