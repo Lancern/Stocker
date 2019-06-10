@@ -97,40 +97,6 @@ namespace Stocker.Crawler.Tasks.Concrete
             return row;
         }
 
-        /// <summary>
-        /// 从给定的 <see cref="ProducerConsumerQueue{String}"/> 中获取要爬取的股票代码并爬取日统计信息。
-        /// </summary>
-        /// <param name="stockCodeQueue"></param>
-        /// <param name="timestamp">爬取的数据所使用的时间戳</param>
-        /// <returns></returns>
-        private async Task ConsumeAndCrawl(ProducerConsumerQueue<string> stockCodeQueue, DateTime timestamp)
-        {
-            var date = DateTime.Now.Date;
-            var stockInfosList = new List<StockDailyStatisticsInfo>();
-            while (true)
-            {
-                string stockCode;
-                try
-                {
-                    stockCode = await stockCodeQueue.Dequeue();
-                }
-                catch (ObjectDisposedException)
-                {
-                    _logger.LogTrace("ConsumeAndCrawl 方法收到 ObjectDisposedException 异常信号。");
-                    break;
-                }
-
-                var stockStat = await StockInfoProvider.GetDailyStatisticsInfo(stockCode, date, date);
-                if (stockStat != null)
-                {
-                    stockInfosList.Add(stockStat);
-                }
-            }
-
-            var rows = stockInfosList.Select(item => GetRow(item, timestamp));
-            await HBaseClientFactory.Create().Add(DailyDataHBaseTableName, rows);
-        }
-
         /// <inheritdoc />
         protected override async Task RunExclusive()
         {
@@ -153,16 +119,20 @@ namespace Stocker.Crawler.Tasks.Concrete
             
             _logger.LogInformation("获取所有股票代码完毕。一共获取到 {0} 支股票代码。", stocksList.Count);
             
-            // API 调用限制：500毫秒间隔，最大并发请求数 = 3
-            var workQueue = new ProducerConsumerQueue<string>(3);
-            var consumer = Task.Run(() => ConsumeAndCrawl(workQueue, ts));
+            // 爬取所有股票的日统计数据
+            var stockInfosList = new List<StockDailyStatisticsInfo>();
             foreach (var stockCode in stocksList.Select(stock => stock.Code))
             {
-                await workQueue.Enqueue(stockCode);
-                await Task.Delay(500);
+                var stockStat = await StockInfoProvider.GetDailyStatisticsInfo(stockCode, ts.Date, ts.Date);
+                if (stockStat != null)
+                {
+                    stockInfosList.Add(stockStat);
+                }
             }
-
-            await consumer;
+            
+            // 将爬取到的日统计数据写入 HBase
+            var rows = stockInfosList.Select(item => GetRow(item, ts));
+            await HBaseClientFactory.Create().Add(DailyDataHBaseTableName, rows);
             
             _logger.LogTrace("准备通知预测节点数据更新");
             

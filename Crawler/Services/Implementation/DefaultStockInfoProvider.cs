@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -14,6 +15,15 @@ namespace Stocker.Crawler.Services.Implementation
     internal sealed class DefaultStockInfoProvider : IStockInfoProvider
     {
         private const string UrlTemplate = "https://api.shenjian.io/?appid={0}";
+
+        private static readonly SemaphoreSlim ConcurrentRequestLock;
+        private static readonly SemaphoreSlim SendRequestLock;
+
+        static DefaultStockInfoProvider()
+        {
+            ConcurrentRequestLock = new SemaphoreSlim(3, 3);
+            SendRequestLock = new SemaphoreSlim(1, 1);
+        }
 
         private static string CreateRequestUrl(string appId)
         {
@@ -40,23 +50,41 @@ namespace Stocker.Crawler.Services.Implementation
             _stockListAppId = stockListAppId;
             _stockDailyStatisticsAppId = stockDailyStatisticsAppId;
         }
+        
+        /// <summary>
+        /// 从指定的 URL 处获取 HTTP 响应。全局并发控制策略以及请求间隔策略将会被应用。
+        /// </summary>
+        /// <param name="url">要请求的目标 URL。</param>
+        /// <returns></returns>
+        private async Task<HttpResponseMessage> GetResponse(string url)
+        {
+            await ConcurrentRequestLock.WaitAsync();
+            await SendRequestLock.WaitAsync();
+            await Task.Delay(500); // 等待 500 毫秒防止过于频繁的请求
+            SendRequestLock.Release();
+
+            var httpClient = _httpClientFactory.CreateClient();
+            return await httpClient.GetAsync(url)
+                                   .ContinueWith(t =>
+                                   {
+                                       httpClient.Dispose();
+                                       ConcurrentRequestLock.Release();
+                                       return t.Result;
+                                   });
+        }
 
         /// <inheritdoc />
         public async Task<List<StockRealtimeInfo>> GetRealtimeStocksList()
         {
             var url = CreateRequestUrl(_stockListAppId);
-            string responseBody;
-            using (var httpClient = _httpClientFactory.CreateClient())
+            var response = await GetResponse(url);
+            if (!response.IsSuccessStatusCode)
             {
-                var response = await httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("获取股票实时列表信息时 API 返回了异常的 HTTP 状态码 {0}", response.StatusCode);
-                    return new List<StockRealtimeInfo>();
-                }
-
-                responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogError("获取股票实时列表信息时 API 返回了异常的 HTTP 状态码 {0}", response.StatusCode);
+                return new List<StockRealtimeInfo>();
             }
+
+            var responseBody = await response.Content.ReadAsStringAsync();
 
             var responseJson = JObject.Parse(responseBody);
             if (responseJson.TryGetValue("error_code", out var errorCodeToken) && errorCodeToken.Value<int>() != 0)
@@ -98,18 +126,14 @@ namespace Stocker.Crawler.Services.Implementation
             urlBuilder.Append("&index=false&k_type=day&fq_type=qfq");
             var url = urlBuilder.ToString();
 
-            string responseBody;
-            using (var httpClient = _httpClientFactory.CreateClient())
+            var response = await GetResponse(url);
+            if (!response.IsSuccessStatusCode)
             {
-                var response = await httpClient.GetAsync(url);
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("获取股票日统计数据时 API 返回了异常的 HTTP 状态码：" + response.StatusCode);
-                    return null;
-                }
-
-                responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogError("获取股票日统计数据时 API 返回了异常的 HTTP 状态码：" + response.StatusCode);
+                return null;
             }
+            
+            var responseBody = await response.Content.ReadAsStringAsync();
 
             var responseJson = JObject.Parse(responseBody);
             if (responseJson.TryGetValue("error_code", out var errorCodeToken) && errorCodeToken.Value<int>() != 0)
