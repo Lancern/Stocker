@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.1</TargetFramework>
-        <AssemblyName>Stocker</AssemblyName>
+        <AssemblyName>Stocker.Common</AssemblyName>
         <RootNamespace>Stocker</RootNamespace>
     </PropertyGroup>
 
