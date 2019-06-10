@@ -112,10 +112,11 @@ namespace Stocker.Crawler.Tasks.Concrete
                 string stockCode;
                 try
                 {
-                    stockCode = stockCodeQueue.Dequeue();
+                    stockCode = await stockCodeQueue.Dequeue();
                 }
                 catch (ObjectDisposedException)
                 {
+                    _logger.LogTrace("ConsumeAndCrawl 方法收到 ObjectDisposedException 异常信号。");
                     break;
                 }
 
@@ -157,7 +158,7 @@ namespace Stocker.Crawler.Tasks.Concrete
             var consumer = Task.Run(() => ConsumeAndCrawl(workQueue, ts));
             foreach (var stockCode in stocksList.Select(stock => stock.Code))
             {
-                workQueue.Enqueue(stockCode);
+                await workQueue.Enqueue(stockCode);
                 await Task.Delay(500);
             }
 

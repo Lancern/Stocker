@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Stocker.Crawler.Utils
 {
@@ -11,7 +12,8 @@ namespace Stocker.Crawler.Utils
     public sealed class ProducerConsumerQueue<T> : IDisposable
     {
         private readonly ConcurrentQueue<T> _q;
-        private readonly SemaphoreSlim _sem;
+        private readonly SemaphoreSlim _producerSemaphore; // 生产者信号量，标识队列中的空闲位置数量
+        private readonly SemaphoreSlim _consumerSemaphore; // 消费者信号量，标识队列中的非空位置数量
         private bool _disposed;
 
         /// <summary>
@@ -25,7 +27,8 @@ namespace Stocker.Crawler.Utils
                 throw new ArgumentOutOfRangeException(nameof(capacity));
 
             _q = new ConcurrentQueue<T>();
-            _sem = new SemaphoreSlim(0, capacity);
+            _producerSemaphore = new SemaphoreSlim(capacity, capacity);
+            _consumerSemaphore = new SemaphoreSlim(0, capacity);
 
             _disposed = false;
         }
@@ -45,12 +48,13 @@ namespace Stocker.Crawler.Utils
         /// </summary>
         /// <param name="value">要添加的值。</param>
         /// <exception cref="ObjectDisposedException"></exception>
-        public void Enqueue(T value)
+        public async Task Enqueue(T value)
         {
             EnsureNotDisposed();
-            
+
+            await _producerSemaphore.WaitAsync();
             _q.Enqueue(value);
-            _sem.Release();
+            _consumerSemaphore.Release();
         }
 
         /// <summary>
@@ -58,12 +62,13 @@ namespace Stocker.Crawler.Utils
         /// </summary>
         /// <returns>被移除的值。</returns>
         /// <exception cref="ObjectDisposedException"></exception>
-        public T Dequeue()
+        public async Task<T> Dequeue()
         {
             EnsureNotDisposed();
 
-            _sem.Wait();
+            await _consumerSemaphore.WaitAsync();
             _q.TryDequeue(out var result);
+            _producerSemaphore.Release();
             return result;
         }
 
@@ -72,7 +77,8 @@ namespace Stocker.Crawler.Utils
         {
             if (!_disposed)
             {
-                _sem.Dispose();
+                _producerSemaphore.Dispose();
+                _consumerSemaphore.Dispose();
                 _disposed = true;
             }
         }
