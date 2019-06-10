@@ -123,7 +123,8 @@ namespace Stocker.Crawler.Tasks.Concrete
             var stockInfosList = new List<StockDailyStatisticsInfo>();
             foreach (var stockCode in stocksList.Select(stock => stock.Code))
             {
-                var stockStat = await StockInfoProvider.GetDailyStatisticsInfo(stockCode, ts.Date, ts.Date);
+                var stockStatList = await StockInfoProvider.GetDailyStatisticsInfo(stockCode, ts.Date, ts.Date);
+                var stockStat = stockStatList.FirstOrDefault();
                 if (stockStat != null)
                 {
                     stockInfosList.Add(stockStat);

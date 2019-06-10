@@ -110,7 +110,7 @@ namespace Stocker.Crawler.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<StockDailyStatisticsInfo> GetDailyStatisticsInfo(string code, DateTime startDate, DateTime endDate)
+        public async Task<List<StockDailyStatisticsInfo>> GetDailyStatisticsInfo(string code, DateTime startDate, DateTime endDate)
         {
             if (code == null)
                 throw new ArgumentNullException(nameof(code));
@@ -155,7 +155,15 @@ namespace Stocker.Crawler.Services.Implementation
                 return null;
             }
 
-            return dataToken.ToObject<StockDailyStatisticsInfo>();
+            if (startDate == endDate)
+            {
+                // 此时 API 返回的结果集直接为该日的日统计数据对象
+                return new List<StockDailyStatisticsInfo> { dataToken.ToObject<StockDailyStatisticsInfo>() };
+            }
+            else
+            {
+                return dataToken.ToObject<List<StockDailyStatisticsInfo>>();
+            }
         }
     }
 }
