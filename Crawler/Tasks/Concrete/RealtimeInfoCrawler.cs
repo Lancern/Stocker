@@ -79,18 +79,18 @@ namespace Stocker.Crawler.Tasks.Concrete
         protected override async Task RunExclusive()
         {
             var ts = DateTime.Now;
-            if (ts.DayOfWeek == DayOfWeek.Saturday || ts.DayOfWeek == DayOfWeek.Sunday)
-            {
-                // 周六周日不开市
-                return;
-            }
-
-            if (ts.TimeOfDay < new TimeSpan(9, 30, 0) || 
-                ts.TimeOfDay > new TimeSpan(15, 0, 0))
-            {
-                // 股市未开市
-                return;
-            }
+//            if (ts.DayOfWeek == DayOfWeek.Saturday || ts.DayOfWeek == DayOfWeek.Sunday)
+//            {
+//                // 周六周日不开市
+//                return;
+//            }
+//
+//            if (ts.TimeOfDay < new TimeSpan(9, 30, 0) || 
+//                ts.TimeOfDay > new TimeSpan(15, 0, 0))
+//            {
+//                // 股市未开市
+//                return;
+//            }
             
             var stocksList = await StockInfoProvider.GetRealtimeStocksList();
 
