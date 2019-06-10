@@ -15,7 +15,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     [CrawlerTask(60)]
     public sealed class DailyStatInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
-        private const string HBaseTableName = "StockInfoOfDay";
+        private const string DailyDataHBaseTableName = "StockInfoOfDay";
 
         private readonly IPredictorNotifier _predictorNotifier;
         
@@ -121,7 +121,7 @@ namespace Stocker.Crawler.Tasks.Concrete
             }
 
             var rows = stockInfosList.Select(item => GetRow(item, timestamp));
-            await HBaseClientFactory.Create().Add(HBaseTableName, rows);
+            await HBaseClientFactory.Create().Add(DailyDataHBaseTableName, rows);
         }
 
         /// <inheritdoc />
@@ -142,21 +142,12 @@ namespace Stocker.Crawler.Tasks.Concrete
             }
             
             // 获取所有的股票代码
-            var stocksCodeList = new List<string>();
-            var hbaseClient = HBaseClientFactory.Create();
-            var scannerCreationOptions = new HBaseScannerCreationOptions { Batch = 1000 };
-            using (var scanner = await hbaseClient.OpenScanner(HBaseTableName, scannerCreationOptions))
-            {
-                while (await scanner.ReadNextBatch())
-                {
-                    stocksCodeList.AddRange(scanner.CurrentBatch.Select(row => row.Key));
-                }
-            }
+            var stocksList = await StockInfoProvider.GetRealtimeStocksList();
             
             // API 调用限制：500毫秒间隔，最大并发请求数 = 3
             var workQueue = new ProducerConsumerQueue<string>(3);
             var consumer = Task.Run(() => ConsumeAndCrawl(workQueue, ts));
-            foreach (var stockCode in stocksCodeList)
+            foreach (var stockCode in stocksList.Select(stock => stock.Code))
             {
                 workQueue.Enqueue(stockCode);
                 await Task.Delay(500);

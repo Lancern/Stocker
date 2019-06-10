@@ -13,7 +13,7 @@ namespace Stocker.Crawler.Tasks.Concrete
     [CrawlerTask(3)]
     public sealed class RealtimeInfoCrawler : ExclusiveStockCrawlerTaskBase
     {
-        private const string HBaseTableName = "StockInfoOfDay";
+        private const string RealtimeDataHBaseTableName = "StockInfoRealTime";
 
         private readonly IPredictorNotifier _predictorNotifier;
         
@@ -96,7 +96,7 @@ namespace Stocker.Crawler.Tasks.Concrete
 
             // 将新获取的数据加入到 HBase 中
             var hbaseRows = stocksList.Select(item => GetRow(item, ts));
-            await HBaseClientFactory.Create().Add(HBaseTableName, hbaseRows);
+            await HBaseClientFactory.Create().Add(RealtimeDataHBaseTableName, hbaseRows);
             
             // 通知预测节点
             await _predictorNotifier.Notify();
