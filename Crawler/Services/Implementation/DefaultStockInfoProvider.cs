@@ -93,7 +93,7 @@ namespace Stocker.Crawler.Services.Implementation
                 throw new ArgumentException($"{nameof(startDate)}不能晚于{nameof(endDate)}");
 
             var urlBuilder = new StringBuilder(CreateRequestUrl(_stockDailyStatisticsAppId));
-            urlBuilder.AppendFormat("&code={0}&start_date={1:yyyy-MM-d}&end_date={2:yyyy-MM-d}", 
+            urlBuilder.AppendFormat("&code={0}&start_date={1:yyyy-MM-dd}&end_date={2:yyyy-MM-dd}", 
                                     code, startDate, endDate);
             urlBuilder.Append("&index=false&k_type=day&fq_type=qfq");
             var url = urlBuilder.ToString();
