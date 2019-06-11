@@ -17,6 +17,8 @@ namespace Stocker.HBase.Serialization
                 writer.WriteNull();
                 return;
             }
+            
+            writer.WriteStartObject();
 
             if (value.Columns != null)
             {
@@ -59,6 +61,8 @@ namespace Stocker.HBase.Serialization
                 writer.WritePropertyName("maxVersions");
                 writer.WriteValue(value.MaxVersions.Value);
             }
+            
+            writer.WriteEndObject();
         }
 
         /// <inheritdoc />

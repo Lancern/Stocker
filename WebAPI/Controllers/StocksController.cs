@@ -18,7 +18,8 @@ namespace Stocker.WebAPI.Controllers
     [Route("stocks")]
     public class StocksController : ControllerBase
     {
-        private const string InputDataTableName = "StockInfoOfDay";
+        private const string DailyDataTableName = "StockInfoOfDay";
+        private const string RealtimeDataTableName = "StockInfoRealTime";
         private const string PredictionDataTableName = "StockInfoOfPrediction";
         
         private readonly IHBaseClientFactory _hbaseClientFactory;
@@ -57,7 +58,7 @@ namespace Stocker.WebAPI.Controllers
 
             // 获取所有的股票信息的列表
             IEnumerable<StockListItem> stocksList = Array.Empty<StockListItem>();
-            using (var scanner = await hbaseClient.OpenScanner(InputDataTableName, scannerCreationOptions))
+            using (var scanner = await hbaseClient.OpenScanner(DailyDataTableName, scannerCreationOptions))
             {
                 while (await scanner.ReadNextBatch())
                 {
@@ -100,7 +101,7 @@ namespace Stocker.WebAPI.Controllers
 
             var hbaseClient = _hbaseClientFactory.Create();
 
-            var dayRow = await hbaseClient.Find(InputDataTableName, code);
+            var dayRow = await hbaseClient.Find(DailyDataTableName, code);
             if (dayRow == null)
             {
                 return NotFound();
@@ -150,7 +151,7 @@ namespace Stocker.WebAPI.Controllers
 
             var hbaseClient = _hbaseClientFactory.Create();
 
-            var dayRow = await hbaseClient.Find(InputDataTableName, code);
+            var dayRow = await hbaseClient.Find(DailyDataTableName, code);
             if (dayRow == null)
             {
                 return NotFound();
