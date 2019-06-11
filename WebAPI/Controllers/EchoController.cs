@@ -11,7 +11,7 @@ namespace Stocker.WebAPI.Controllers
         [HttpGet]
         public ActionResult<object> Get([FromQuery][BindRequired] string message)
         {
-            return new { Message = DateTime.Now.ToString("s") + message };
+            return new { Message = DateTime.Now.ToString("s") + " " + message };
         }
     }
 }
