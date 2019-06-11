@@ -25,12 +25,12 @@ namespace Stocker.Crawler.Services
         /// <param name="code">股票代码</param>
         /// <param name="startDate">起始日期</param>
         /// <param name="endDate">结束日期</param>
-        /// <returns>当获取数据失败时，返回 null。</returns>
+        /// <returns>当获取数据失败时，返回空列表。</returns>
         /// <exception cref="ArgumentNullException"><paramref name="code"/>为null</exception>
         /// <exception cref="ArgumentException">
         ///     <paramref name="startDate"/>晚于<paramref name="endDate"/>
         /// </exception>
-        Task<StockDailyStatisticsInfo> GetDailyStatisticsInfo(string code, DateTime startDate, DateTime endDate);
+        Task<List<StockDailyStatisticsInfo>> GetDailyStatisticsInfo(string code, DateTime startDate, DateTime endDate);
     }
 }
 

@@ -122,7 +122,7 @@ namespace Stocker.Crawler.Tasks.Implementation
                             {
                                 if (t.IsFaulted)
                                 {
-                                    _logger.LogError(t.Exception, "Crawler 任务 {0} 抛出了未经处理的异常。");
+                                    _logger.LogError(t.Exception, "Crawler 任务 {0} 抛出了未经处理的异常。", taskId);
                                 }
                                 else
                                 {
