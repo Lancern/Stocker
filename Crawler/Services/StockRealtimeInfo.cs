@@ -58,7 +58,7 @@ namespace Stocker.Crawler.Services
         /// <summary>
         /// 获取或设置股价的相对涨跌幅度。
         /// </summary>
-        [JsonProperty("")]
+        [JsonProperty("changepercent")]
         public double PriceRelativeChange { get; set; }
         
         /// <summary>
