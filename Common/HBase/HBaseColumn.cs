@@ -78,7 +78,7 @@ namespace Stocker.HBase
 
         public static bool operator !=(HBaseColumn col1, HBaseColumn col2)
         {
-            return col1 != col2;
+            return !(col1 == col2);
         }
     }
 }
