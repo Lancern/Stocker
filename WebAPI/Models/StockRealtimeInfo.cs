@@ -31,29 +31,23 @@ namespace Stocker.WebAPI.Models
         public List<StockRealtiimePrice> Data { get; set; }
 
         public static StockRealtimeInfo FromHBaseRowCellCollection(
-            HBaseRowCellCollection dayCells,
-            HBaseRowCellCollection predictCells)
+            HBaseRowCellCollection realtimeCells)
         {
-            if (dayCells == null)
-                throw new ArgumentNullException(nameof(dayCells));
+            if (realtimeCells == null)
+                throw new ArgumentNullException(nameof(realtimeCells));
 
             var stock = new StockRealtimeInfo
             {
                 Data = new List<StockRealtiimePrice>()
             };
 
-            var nameCells = dayCells.Get("name", "name").ToArray();
-            if (nameCells.Length > 0)
-            {
-                stock.Name = Encoding.UTF8.GetString(nameCells[0].Data);
-            }
-
-            foreach (var value in PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "price"))
+            var realtimePrice = realtimeCells.Get("price", "price").ToArray();
+            foreach (var price in realtimePrice)
             {
                 stock.Data.Add(new StockRealtiimePrice
                 {
-                    Timestamp = new DateTime(value.Key),
-                    Price = value.Value
+                    Timestamp = new DateTime(price.Timestamp),
+                    Price = new PredictedNumber { ActualValue = double.Parse(Encoding.UTF8.GetString(price.Data)) }
                 });
             }
 

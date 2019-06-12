@@ -12,3 +12,5 @@
 /WebAPI/obj
 /WebAPI/bin
 /WebAPI/hbasesettings.json
+/WebAPI/Properties/PublishProfiles
+/WebAPI/WebAPI.csproj.user

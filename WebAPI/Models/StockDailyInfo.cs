@@ -70,7 +70,7 @@ namespace Stocker.WebAPI.Models
         /// <param name="dayCells">日统计数据。</param>
         /// <param name="predictCells">预测数据。</param>
         /// <returns></returns>
-        public static Dictionary<long, StockDailyInfo> FromHBaseRowCellCollection(
+        public static Dictionary<DateTime, StockDailyInfo> FromHBaseRowCellCollection(
             HBaseRowCellCollection dayCells,
             HBaseRowCellCollection predictCells)
         {
@@ -81,7 +81,7 @@ namespace Stocker.WebAPI.Models
             var totalDeals = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "total");
             var amount = PredictedNumber.FromHBaseRowCellCollection(dayCells, predictCells, "amount");
 
-            var dailyInfo = new Dictionary<long, StockDailyInfo>();
+            var dailyInfo = new Dictionary<DateTime, StockDailyInfo>();
 
             foreach (var price in openPrice)
             {
@@ -89,7 +89,7 @@ namespace Stocker.WebAPI.Models
                 {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
-                        Date = new DateTime(price.Key)
+                        Date = price.Key
                     };
                 }
                 dailyInfo[price.Key].OpenPrice = price.Value;
@@ -101,7 +101,7 @@ namespace Stocker.WebAPI.Models
                 {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
-                        Date = new DateTime(price.Key)
+                        Date = price.Key
                     };
                 }
                 dailyInfo[price.Key].SettlementPrice = price.Value;
@@ -113,7 +113,7 @@ namespace Stocker.WebAPI.Models
                 {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
-                        Date = new DateTime(price.Key)
+                        Date = price.Key
                     };
                 }
                 dailyInfo[price.Key].LowestPrice = price.Value;
@@ -125,7 +125,7 @@ namespace Stocker.WebAPI.Models
                 {
                     dailyInfo[price.Key] = new StockDailyInfo
                     {
-                        Date = new DateTime(price.Key)
+                        Date = price.Key
                     };
                 }
                 dailyInfo[price.Key].HighestPrice = price.Value;
@@ -137,7 +137,7 @@ namespace Stocker.WebAPI.Models
                 {
                     dailyInfo[deal.Key] = new StockDailyInfo
                     {
-                        Date = new DateTime(deal.Key)
+                        Date = deal.Key
                     };
                 }
                 dailyInfo[deal.Key].TotalDeals = deal.Value;
@@ -149,7 +149,7 @@ namespace Stocker.WebAPI.Models
                 {
                     dailyInfo[deal.Key] = new StockDailyInfo
                     {
-                        Date = new DateTime(deal.Key)
+                        Date = deal.Key
                     };
                 }
                 dailyInfo[deal.Key].Amount = deal.Value;

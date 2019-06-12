@@ -41,7 +41,7 @@ namespace Stocker.WebAPI.Models
         /// <param name="predictCells">prediction表中符合条件的cell</param>
         /// <param name="columnName">要合并的列族名</param>
         /// <returns></returns>
-        public static Dictionary<long, PredictedNumber> FromHBaseRowCellCollection(
+        public static Dictionary<DateTime, PredictedNumber> FromHBaseRowCellCollection(
             HBaseRowCellCollection dayCells,
             HBaseRowCellCollection predictCells,
             string columnName)
@@ -49,49 +49,56 @@ namespace Stocker.WebAPI.Models
             if (dayCells == null)
                 throw new ArgumentNullException(nameof(dayCells));
 
-            var pdNum = new Dictionary<long, PredictedNumber>();
+            if (predictCells == null)
+                throw new ArgumentNullException(nameof(predictCells));
+
+            var pdNum = new Dictionary<DateTime, PredictedNumber>();
 
             foreach (var actualValue in dayCells.Get(columnName, columnName))
             {
-                if (!pdNum.ContainsKey(actualValue.Timestamp))
+                var date = new DateTime(actualValue.Timestamp).Date;
+                if (!pdNum.ContainsKey(date))
                 {
-                    pdNum[actualValue.Timestamp] = new PredictedNumber();
+                    pdNum[date] = new PredictedNumber();
                 }
                 
-                pdNum[actualValue.Timestamp].ActualValue =
+                pdNum[date].ActualValue =
                     double.Parse(Encoding.UTF8.GetString(actualValue.Data));
             }
 
             foreach (var predictedMinValue in predictCells.Get(columnName, "lower"))
             {
-                if (!pdNum.ContainsKey(predictedMinValue.Timestamp))
+                var date = new DateTime(predictedMinValue.Timestamp).Date;
+                if (!pdNum.ContainsKey(date))
                 {
-                    pdNum[predictedMinValue.Timestamp] = new PredictedNumber();
+                    pdNum[date] = new PredictedNumber();
                 }
                 
-                pdNum[predictedMinValue.Timestamp].PredictedMinValue =
+                pdNum[date].PredictedMinValue =
                     double.Parse(Encoding.UTF8.GetString(predictedMinValue.Data));
             }
 
             foreach (var predictedValue in predictCells.Get(columnName, "value"))
             {
-                if (!pdNum.ContainsKey(predictedValue.Timestamp))
+                var date = new DateTime(predictedValue.Timestamp).Date;
+                if (!pdNum.ContainsKey(date))
                 {
-                    pdNum[predictedValue.Timestamp] = new PredictedNumber();
+                    pdNum[date] = new PredictedNumber();
                 }
                 
-                pdNum[predictedValue.Timestamp].PredictedValue =
+                pdNum[date].PredictedValue =
                     double.Parse(Encoding.UTF8.GetString(predictedValue.Data));
             }
 
             foreach (var predictedMaxValue in predictCells.Get(columnName, "upper"))
             {
-                if (!pdNum.ContainsKey(predictedMaxValue.Timestamp))
+                var date = new DateTime(predictedMaxValue.Timestamp).Date;
+                if (!pdNum.ContainsKey(date))
                 {
-                    pdNum[predictedMaxValue.Timestamp] = new PredictedNumber();
+                    pdNum[date] = new PredictedNumber();
                 }
                 
-                pdNum[predictedMaxValue.Timestamp].PredictedMaxValue =
+                pdNum[date].PredictedMaxValue =
                     double.Parse(Encoding.UTF8.GetString(predictedMaxValue.Data));
             }
 

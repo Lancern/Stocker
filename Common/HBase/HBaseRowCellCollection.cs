@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Stocker.HBase
 {
@@ -160,6 +161,56 @@ namespace Stocker.HBase
             if (!_cells.TryGetValue(column, out var cells))
             {
                 return new HBaseCell[0];
+            }
+
+            return cells;
+        }
+
+        public HBaseRowCellCollection GetAt(DateTime realDate, string column)
+        {
+            var dateMap = new Dictionary<long, DateTime>();
+            foreach (var date in Get("date", column).ToArray())
+            {
+                dateMap[date.Timestamp] = DateTime.Parse(Encoding.UTF8.GetString(date.Data));
+            }
+
+            var cells = new HBaseRowCellCollection();
+            foreach (var cell in this)
+            {
+                var date = dateMap[cell.Timestamp];
+                if (date.Date != realDate.Date)
+                    continue;
+                cells.Add(new HBaseCell
+                {
+                    Column = cell.Column,
+                    Timestamp = date.Ticks,
+                    Data = cell.Data
+                });
+            }
+
+            return cells;
+        }
+
+        public HBaseRowCellCollection GetBetween(DateTime startDate, DateTime endDate, string column)
+        {
+            var dateMap = new Dictionary<long, DateTime>();
+            foreach (var date in Get("date", column).ToArray())
+            {
+                dateMap[date.Timestamp] = DateTime.Parse(Encoding.UTF8.GetString(date.Data));
+            }
+
+            var cells = new HBaseRowCellCollection();
+            foreach (var cell in this)
+            {
+                var date = dateMap[cell.Timestamp];
+                if (date.Date < startDate.Date || date.Date > endDate)
+                    continue;
+                cells.Add(new HBaseCell
+                {
+                    Column = cell.Column,
+                    Timestamp = date.Ticks,
+                    Data = cell.Data
+                });
             }
 
             return cells;

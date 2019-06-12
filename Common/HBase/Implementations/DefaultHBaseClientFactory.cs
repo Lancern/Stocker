@@ -34,6 +34,7 @@ namespace Stocker.HBase.Implementations
 
             var address = hbaseSection.GetValue<string>("Address");
             var port = hbaseSection.GetValue<int>("Port");
+
             if (string.IsNullOrEmpty(address))
             {
                 throw new InvalidOperationException("在应用程序配置根中未能找到 HBase 实例地址。");
