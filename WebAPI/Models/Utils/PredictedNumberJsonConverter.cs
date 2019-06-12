@@ -35,6 +35,8 @@ namespace Stocker.WebAPI.Models.Utils
                 writer.WriteNull();
                 return;
             }
+            
+            writer.WriteStartObject();
 
             foreach (var (propertyName, property) in TargetProperties)
             {
@@ -44,6 +46,8 @@ namespace Stocker.WebAPI.Models.Utils
                     writer.WriteValue(propertyValue);
                 }
             }
+            
+            writer.WriteEndObject();
         }
 
         /// <inheritdoc />
